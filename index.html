@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<title>ステーブルフォード計算</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Bebas+Neue&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+html,body{width:100%;min-height:100vh;min-height:-webkit-fill-available;overflow-x:hidden}
+body{font-family:'Noto Sans JP',sans-serif;background:#0f2d1a;-webkit-text-size-adjust:100%;padding-bottom:env(safe-area-inset-bottom);touch-action:manipulation}
+input,textarea,button,select{font-size:16px;touch-action:manipulation}
+input[type="number"]{font-size:16px}
+.hdr{background:linear-gradient(135deg,#0f2d1a,#1a5c2e);padding:16px 16px 14px;text-align:center;border-bottom:2px solid #c9a84c}
+.hdr h1{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#c9a84c;letter-spacing:3px}
+.hdr p{color:#a0c4a8;font-size:10px;margin-top:2px}
+.wrap{max-width:480px;margin:0 auto;padding:14px}
+.tabs{display:flex;background:#1a3d26;border-radius:12px;padding:4px;margin-bottom:14px;gap:2px}
+.tab{flex:1;padding:10px 2px;border:none;border-radius:8px;font-family:inherit;font-size:10px;font-weight:700;cursor:pointer;background:transparent;color:#6b9e78;min-height:38px;touch-action:manipulation}
+.tab.on{background:#c9a84c;color:#1a1a1a}
+.card{background:#fafafa;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.12)}
+.ctit{font-size:13px;font-weight:900;color:#1a5c2e;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.ctit::before{content:'';display:block;width:4px;height:18px;background:#c9a84c;border-radius:2px}
+input{font-family:inherit}
+.cinput{width:100%;padding:13px 14px;border:2px solid #d1d5db;border-radius:12px;font-size:15px;font-weight:700;background:#fff}
+.cinput:focus{outline:none;border-color:#1a5c2e}
+.prow{display:flex;align-items:center;gap:6px;margin-bottom:10px;padding:10px;background:#f3f4f6;border-radius:10px;width:100%;overflow:hidden}
+.prow>*{min-width:0}
+.pcol{width:8px;height:36px;border-radius:4px;flex-shrink:0}
+.pname-wrap{flex:1 1 auto;min-width:0}
+.pscore-wrap{flex:0 0 75px}
+.pni{width:100%;border:1.5px solid #d1d5db;border-radius:8px;padding:8px;font-size:16px;font-weight:700;background:#fff;min-width:0}
+.psi{width:100%;border:1.5px solid #d1d5db;border-radius:8px;padding:8px;font-size:16px;font-weight:700;text-align:center;background:#fff}
+.ilbl{font-size:10px;color:#6b7280;text-align:center;margin-bottom:2px}
+.hct{width:100%;border-collapse:collapse;font-size:12px}
+.hct th{background:#1a5c2e;color:#fff;padding:7px 5px;text-align:center;font-size:11px}
+.hct td{padding:7px 5px;text-align:center;border-bottom:1px solid #e5e7eb}
+.hct tr:nth-child(even) td{background:#f3f4f6}
+.hcb{display:inline-block;background:#e8f5ed;color:#1a5c2e;border-radius:20px;padding:2px 10px;font-weight:700}
+.hg{display:grid;grid-template-columns:28px 36px 36px repeat(4,1fr);gap:3px;align-items:center;margin-bottom:3px}
+.hg.hd{font-size:9px;font-weight:700;color:#6b7280;text-align:center}
+.hno{font-size:11px;font-weight:700;color:#1a5c2e;text-align:center}
+.miniinp{width:100%;height:38px;border:1.5px solid #d1d5db;border-radius:5px;text-align:center;font-size:14px;font-weight:700;background:#fff;-webkit-appearance:none;touch-action:manipulation}
+.miniinp:focus{outline:none;border-color:#1a5c2e;background:#e8f5ed}
+.si{width:100%;height:38px;border:1.5px solid #d1d5db;border-radius:5px;text-align:center;font-size:15px;font-weight:700;background:#fff;-webkit-appearance:none;touch-action:manipulation}
+.si:focus{outline:none;border-color:#1a5c2e;background:#e8f5ed}
+.scwrap{position:relative}
+.hcmark{position:absolute;top:-5px;right:-3px;background:#dc2626;color:#fff;font-size:8px;font-weight:900;border-radius:8px;padding:1px 4px;line-height:1.2;z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.3);pointer-events:none}
+.netshow{font-size:9px;color:#1a5c2e;text-align:center;margin-top:1px;font-weight:700;height:11px}
+.phdr{height:4px;border-radius:2px;margin:0 2px 2px}
+.trow{display:grid;grid-template-columns:28px 36px 36px repeat(4,1fr);gap:3px;margin-top:6px;padding-top:6px;border-top:2px solid #1a5c2e}
+.tc{height:27px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;background:#1a5c2e;color:#fff}
+.tl{height:27px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#1a5c2e;grid-column:span 3}
+.rrank{display:flex;align-items:center;padding:13px;gap:11px;background:#fff;border-bottom:1px solid #e5e7eb}
+.rnum{font-family:'Bebas Neue',sans-serif;font-size:34px;width:34px;text-align:center;line-height:1;color:#d1d5db}
+.rnum.g{color:#c9a84c}.rnum.s{color:#9ca3af}.rnum.b{color:#cd7c3a}
+.rname{font-size:16px;font-weight:900}
+.rdet{font-size:11px;color:#6b7280;margin-top:2px}
+.rpt{font-family:'Bebas Neue',sans-serif;font-size:36px;color:#1a5c2e;line-height:1}
+.rpt span{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:700;color:#6b7280}
+.pref{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.pri{text-align:center;padding:7px;border-radius:8px}
+.btn{width:100%;padding:15px;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:900;cursor:pointer;min-height:50px;touch-action:manipulation}
+.btnp{background:linear-gradient(135deg,#1a5c2e,#2d8a4e);color:#fff}
+.btng{background:linear-gradient(135deg,#c9a84c,#f0d080);color:#1a1a1a}
+.btno{background:transparent;border:2px solid #1a5c2e;color:#1a5c2e}
+.btn:active{transform:scale(.98);opacity:.9}
+.notice{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px;font-size:11px;color:#92400e;margin-bottom:10px;line-height:1.6}
+.hidden{display:none !important}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:#fff;border-radius:16px;padding:24px;max-width:340px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3)}
+.modal-msg{font-size:16px;color:#1a1a1a;line-height:1.6;margin-bottom:20px;white-space:pre-wrap;text-align:center;font-weight:700;min-height:24px}
+.modal-btns{display:flex;gap:10px}
+.modal-btn{flex:1;padding:14px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:50px;font-family:inherit}
+.modal-btn-cancel{border:2px solid #6b7280;background:#fff;color:#6b7280}
+.modal-btn-ok{border:none;background:#dc2626;color:#fff}
+.cname{font-size:14px;font-weight:900;color:#1a5c2e;text-align:center;padding:8px;background:#e8f5ed;border-radius:8px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="hdr">
+<h1>⛳ STABLEFORD</h1>
+<p>当日差ハンデ方式 / 自動計算</p>
+</div>
+<div class="wrap">
+<div class="tabs">
+<button class="tab on" id="t1" data-action="show" data-arg="1">①コース</button>
+<button class="tab" id="t2" data-action="show" data-arg="2">②メンバー</button>
+<button class="tab" id="t3" data-action="show" data-arg="3">③スコア</button>
+<button class="tab" id="t4" data-action="show" data-arg="4">④結果</button>
+<button class="tab" id="t5" data-action="showHistory">📚履歴</button>
+</div>
+<div id="s1">
+<button type="button" class="btn btnp" data-action="resetAll" style="margin-bottom:14px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
+<div class="card">
+<div class="ctit">ゴルフ場名</div>
+<input class="cinput" id="cname" type="text" placeholder="例：大宮ゴルフコース">
+<div style="margin-top:8px;font-size:10px;color:#6b7280;text-align:center">※スコアカードに表示されます</div>
+</div>
+<div class="card">
+<div class="ctit">📋 スコアカード貼り付け取り込み</div>
+<div class="notice">📌 <b>使い方</b>：①下の指示文をコピー → ②ChatGPT/Claudeアプリで画像と一緒に送信 → ③返ってきたテキストを下に貼り付け → ④「取り込む」を押す</div>
+
+<div style="margin-top:10px">
+<div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:5px">📝 ステップ①：この指示文をコピーしてAIに送信</div>
+<div style="position:relative">
+<textarea id="aiPrompt" readonly style="width:100%;height:170px;border:1.5px solid #d1d5db;border-radius:8px;padding:10px;font-family:monospace;font-size:16px;background:#f9fafb;resize:none;color:#374151" onclick="this.select()">スコアカードの画像を読み取り、以下の形式のみで出力。説明文不要。
+
+GOLF=ゴルフ場名
+P1=氏名,合計,1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H
+P2=氏名,合計,1H〜18H
+P3=氏名,合計,1H〜18H
+P4=氏名,合計,1H〜18H
+PAR=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H
+HDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H</textarea>
+<button data-action="copyPrompt" style="position:absolute;top:6px;right:6px;background:#1a5c2e;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:16px;font-weight:700;cursor:pointer">📋コピー</button>
+
+</div>
+</div>
+
+<div style="margin-top:14px">
+<div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:5px">📥 ステップ②：AIの返答をここに貼り付け</div>
+<textarea id="rawText" placeholder="GOLF=プレステージカントリークラブ&#10;P1=工藤昌彦,93,5,5,5,3,4,5,3,6,6,6,6,3,8,5,5,7,4,7&#10;P2=豊田健吾,97,6,8,4,3,7,5,4,6,5,6,6,4,5,6,6,5,3,8&#10;P3=関口健一,99,6,7,5,3,5,7,4,7,5,7,6,3,6,5,5,6,4,8&#10;P4=小川,108,8,5,5,4,5,9,3,7,8,7,6,5,5,7,7,6,5,6&#10;PAR=5,4,4,3,4,4,3,5,4,5,4,3,4,4,4,4,3,5&#10;HDP=3,9,15,13,1,7,17,5,11,4,10,16,2,8,14,12,18,6" style="width:100%;height:200px;border:1.5px solid #d1d5db;border-radius:8px;padding:10px;font-family:monospace;font-size:16px;background:#fff;resize:vertical"></textarea>
+</div>
+
+<button class="btn btng" style="margin-top:10px" data-action="parseRawText">✓ 取り込んで自動入力</button>
+
+<div id="ocrErr" class="hidden" style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;font-size:12px;color:#dc2626;margin-top:10px;line-height:1.5;white-space:pre-wrap"></div>
+<div id="ocrOk" class="hidden" style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:10px;font-size:12px;color:#065f46;margin-top:10px;line-height:1.5;font-weight:700;white-space:pre-wrap"></div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<button class="btn btnp" data-action="goStep2">② メンバー登録へ →</button>
+</div>
+<div id="s2" class="hidden">
+<div class="card">
+<div class="ctit">プレーヤー登録・当日スコア</div>
+<div class="notice">ラウンド終了後の合計スコアを入力。最少スコアを基準に差ハンデを自動計算します。</div>
+<div id="pi"></div>
+</div>
+<div class="card">
+<div class="ctit">差ハンデ（自動計算）</div>
+<table class="hct"><thead><tr><th>名前</th><th>スコア</th><th>差HC</th></tr></thead><tbody id="hb"></tbody></table>
+</div>
+<div style="display:flex;gap:10px">
+<button class="btn btno" style="flex:1" data-action="show" data-arg="1">← 戻る</button>
+<button class="btn btnp" style="flex:2" data-action="goStep3">③ スコア入力へ →</button>
+</div>
+</div>
+<div id="s3" class="hidden">
+<div class="card">
+<div class="ctit">ポイント換算（ネット基準）</div>
+<div class="pref">
+<div class="pri" style="background:#fef3c7"><div style="font-weight:700;font-size:11px">イーグル↓</div><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#92400e">4</div></div>
+<div class="pri" style="background:#d1fae5"><div style="font-weight:700;font-size:11px">バーディー</div><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#065f46">3</div></div>
+<div class="pri" style="background:#dbeafe"><div style="font-weight:700;font-size:11px">パー</div><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#1e40af">2</div></div>
+<div class="pri" style="background:#f3f4f6"><div style="font-weight:700;font-size:11px">ボギー</div><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#374151">1</div></div>
+<div class="pri" style="background:#fee2e2"><div style="font-weight:700;font-size:11px">Wボギー+</div><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#991b1b">0</div></div>
+<div class="pri" style="background:#f0fdf4;border:1px solid #86efac"><div style="font-weight:700;font-size:10px;color:#15803d;line-height:1.4">グロス−ハンデ<br>=ネット</div></div>
+</div>
+</div>
+<div class="notice">各ホールの<b>Par</b>と<b>HDP</b>はスコアカードに記載。スコアと一緒に入力してください。</div>
+<div class="card"><div class="ctit">前半（1〜9H）</div><div id="fn"></div></div>
+<div class="card"><div class="ctit">後半（10〜18H）</div><div id="bn"></div></div>
+<div style="display:flex;gap:10px;margin-bottom:14px">
+<button class="btn btno" style="flex:1" data-action="show" data-arg="2">← 戻る</button>
+<button class="btn btng" style="flex:2" data-action="goStep4">④ 結果を見る →</button>
+</div>
+</div>
+<div id="s4" class="hidden">
+<div id="rc"></div>
+<div class="card">
+<div class="ctit">スコアカード（ホール別）</div>
+<div id="dt" style="max-width:100%;overflow-x:auto"></div>
+</div>
+<div style="clear:both;display:block;margin-top:20px;margin-bottom:40px">
+<button type="button" class="btn btng" data-action="saveRound" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">💾 このラウンドを保存</button>
+<button type="button" class="btn btno" data-action="show" data-arg="3" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">← スコア修正</button>
+<button type="button" class="btn btnp" data-action="resetAll" style="display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
+</div>
+</div>
+
+<div id="s5" class="hidden">
+<div class="card">
+<div class="ctit">📚 保存したラウンド履歴</div>
+<div style="font-size:11px;color:#6b7280;margin-bottom:10px">保存した結果を一覧表示。最大20件まで保存されます。</div>
+<div id="histList"></div>
+</div>
+<div style="margin-bottom:40px">
+<button type="button" class="btn btnp" data-action="show" data-arg="1" style="display:block;width:100%">← トップに戻る</button>
+</div>
+</div>
+</div>
+
+<div id="confirmModal" class="modal-overlay hidden">
+<div class="modal-box">
+<div class="modal-msg" id="confirmMsg">確認</div>
+<div class="modal-btns">
+<button type="button" class="modal-btn modal-btn-cancel" data-action="confirmCancel">キャンセル</button>
+<button type="button" class="modal-btn modal-btn-ok" data-action="confirmOK">OK</button>
+</div>
+</div>
+</div>
+
+<script>
+const COLS=['#ef4444','#3b82f6','#f59e0b','#8b5cf6'];
+let HC=[0,0,0,0],NS=['Aさん','Bさん','Cさん','Dさん'],courseName='';
+let _confirmCallback=null;
+function $(id){return document.getElementById(id);}
+
+function showConfirmDialog(message,onOK){
+  _confirmCallback=onOK;
+  const msgEl=$('confirmMsg');
+  if(msgEl)msgEl.textContent=message;
+  const modal=$('confirmModal');
+  if(modal)modal.classList.remove('hidden');
+}
+function confirmOK(){
+  const modal=$('confirmModal');
+  if(modal)modal.classList.add('hidden');
+  if(_confirmCallback){
+    const cb=_confirmCallback;
+    _confirmCallback=null;
+    cb();
+  }
+}
+function confirmCancel(){
+  const modal=$('confirmModal');
+  if(modal)modal.classList.add('hidden');
+  _confirmCallback=null;
+}
+
+function buildPlayers(){
+  const dn=['Aさん','Bさん','Cさん','Dさん'];
+  $('pi').innerHTML=[0,1,2,3].map(i=>`<div class="prow"><div class="pcol" style="background:${COLS[i]}"></div><div class="pname-wrap"><div class="ilbl">名前</div><input class="pni" id="nm${i}" type="text" value="${dn[i]}" oninput="updHC()"></div><div class="pscore-wrap"><div class="ilbl">スコア</div><input class="psi" id="sc${i}" type="number" placeholder="-" oninput="updHC()"></div></div>`).join('');
+}
+
+function calcHC(){
+  const t=[0,1,2,3].map(i=>parseInt($('sc'+i)?.value)||0);
+  const valid=t.filter(x=>x>0);
+  if(valid.length===0){HC=[0,0,0,0];}
+  else{const mn=Math.min(...valid);HC=t.map(x=>x>0?Math.min(x-mn,36):0);}
+  NS=[0,1,2,3].map(i=>$('nm'+i)?.value||'P'+(i+1));
+}
+
+function updHC(){
+  calcHC();
+  $('hb').innerHTML=HC.map((hc,i)=>{
+    const sc=$('sc'+i)?.value||'';
+    return `<tr><td><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${COLS[i]}"></span>${NS[i]}</span></td><td>${sc}</td><td><span class="hcb">${sc?hc:'-'}</span></td></tr>`;
+  }).join('');
+}
+
+function buildHoles(){
+  calcHC();
+  buildNine('fn',1,9);
+  buildNine('bn',10,18);
+}
+
+function buildNine(id,start,end){
+  const phdr=NS.map((n,i)=>`<div><div class="phdr" style="background:${COLS[i]}"></div><div style="font-size:9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</div></div>`).join('');
+  let html=`<div class="hg hd"><div>H</div><div>Par</div><div>HDP</div>${phdr}</div>`;
+  for(let h=start;h<=end;h++){
+    const inp=[0,1,2,3].map(i=>`<div class="scwrap"><span class="hcmark" id="m_${h}_${i}" style="display:none"></span><input class="si" id="s_${h}_${i}" type="number" min="1" max="15" placeholder="-" oninput="updPt(${h},${i})"><div class="netshow" id="n_${h}_${i}"></div></div>`).join('');
+    html+=`<div class="hg"><div class="hno">${h}</div><input class="miniinp" id="par_${h}" type="number" min="3" max="6" placeholder="P" oninput="updAllPt(${h})"><input class="miniinp" id="hdp_${h}" type="number" min="1" max="18" placeholder="H" oninput="refreshHdpMarks(${h});updAllPt(${h})">${inp}</div>`;
+  }
+  const pfx=start===1?'f':'b';
+  const tc=[0,1,2,3].map(i=>`<div class="tc" id="${pfx}p_${i}">-</div>`).join('');
+  html+=`<div class="trow"><div class="tl">小計</div>${tc}</div>`;
+  $(id).innerHTML=html;
+}
+
+function getHS(hc,hdp){
+  if(!hdp)return 0;
+  let s=0;
+  if(hc>=hdp)s++;
+  if(hc>=hdp+18)s++;
+  return s;
+}
+
+function calcPt(g,par,hs){
+  const diff=(g-hs)-par;
+  if(diff<=-2)return 4;
+  if(diff===-1)return 3;
+  if(diff===0)return 2;
+  if(diff===1)return 1;
+  return 0;
+}
+
+function updAllPt(h){[0,1,2,3].forEach(i=>updPt(h,i));}
+
+function refreshHdpMarks(h){
+  const hdp=parseInt($('hdp_'+h)?.value);
+  [0,1,2,3].forEach(i=>{
+    const mark=$(`m_${h}_${i}`);
+    if(!mark)return;
+    const hs=getHS(HC[i],hdp||0);
+    if(hs>0){mark.textContent='▼'+hs;mark.style.display='block';}
+    else{mark.style.display='none';}
+  });
+}
+
+function refreshAllHdpMarks(){
+  for(let h=1;h<=18;h++) refreshHdpMarks(h);
+}
+
+function updPt(hn,pi){
+  const par=parseInt($('par_'+hn)?.value);
+  const hdp=parseInt($('hdp_'+hn)?.value);
+  const inp=$(`s_${hn}_${pi}`);
+  const netEl=$(`n_${hn}_${pi}`);
+  if(!inp)return;
+  const v=parseInt(inp.value);
+  if(isNaN(v)||v<1||isNaN(par)){
+    inp.dataset.point='';
+    inp.style.background='#fff';inp.style.color='#000';inp.style.borderColor='#d1d5db';
+    if(netEl)netEl.textContent='';
+    updTotals();return;
+  }
+  const hs=getHS(HC[pi],hdp||0);
+  const net=v-hs;
+  const pt=calcPt(v,par,hs);
+  inp.dataset.point=pt;
+  const cs={4:['#fef3c7','#92400e','#fcd34d'],3:['#d1fae5','#065f46','#6ee7b7'],2:['#dbeafe','#1e40af','#93c5fd'],1:['#f3f4f6','#374151','#d1d5db'],0:['#fee2e2','#991b1b','#fca5a5']};
+  inp.style.background=cs[pt][0];inp.style.color=cs[pt][1];inp.style.borderColor=cs[pt][2];
+  if(netEl){
+    if(hs>0)netEl.innerHTML=`<span style="color:#1a5c2e">→${net}</span> <span style="background:#1a5c2e;color:#fff;border-radius:6px;padding:0 3px;font-size:9px">${pt}pt</span>`;
+    else netEl.innerHTML=`<span style="background:#1a5c2e;color:#fff;border-radius:6px;padding:0 3px;font-size:9px">${pt}pt</span>`;
+  }
+  updTotals();
+}
+
+function updTotals(){
+  [0,1,2,3].forEach(i=>{
+    let fr=0,bk=0;
+    for(let h=1;h<=18;h++){
+      const inp=$(`s_${h}_${i}`);
+      const p=parseInt(inp?.dataset.point??'');
+      if(!isNaN(p)){if(h<=9)fr+=p;else bk+=p;}
+    }
+    if($('fp_'+i))$('fp_'+i).textContent=fr||'-';
+    if($('bp_'+i))$('bp_'+i).textContent=bk||'-';
+  });
+}
+
+function getHoleData(){
+  const data=[];
+  for(let h=1;h<=18;h++){
+    data.push({hole:h,par:parseInt($('par_'+h)?.value)||0,hdp:parseInt($('hdp_'+h)?.value)||0});
+  }
+  return data;
+}
+
+function renderResults(){
+  const holes=getHoleData();
+  const res=[0,1,2,3].map(i=>{
+    let tot=0,grossTot=0,netTot=0;
+    const hp=holes.map(h=>{
+      const inp=$(`s_${h.hole}_${i}`);
+      const g=parseInt(inp?.value);
+      const hs=getHS(HC[i],h.hdp);
+      if(!isNaN(g)&&g>0&&h.par>0){
+        const p=calcPt(g,h.par,hs);
+        tot+=p;grossTot+=g;netTot+=(g-hs);
+        return{...h,g,hs,net:g-hs,p};
+      }
+      return{...h,g:null,hs,net:null,p:null};
+    });
+    return{name:NS[i],col:COLS[i],hc:HC[i],tot,grossTot,netTot,hp};
+  }).sort((a,b)=>b.tot-a.tot);
+
+  const rl=['g','s','b',''],md=['🥇','🥈','🥉','4'];
+  $('rc').innerHTML=`<div class="card">${courseName?`<div class="cname">⛳ ${courseName}</div>`:''}<div class="ctit">🏆 最終結果</div>${res.map((r,i)=>`<div class="rrank"><div class="rnum ${rl[i]}">${md[i]}</div><div style="width:8px;height:38px;border-radius:4px;background:${r.col}"></div><div style="flex:1"><div class="rname">${r.name}</div><div class="rdet">グロス${r.grossTot} / ネット${r.netTot} / 差HC${r.hc}</div></div><div class="rpt">${r.tot}<span>pt</span></div></div>`).join('')}</div>`;
+
+  const pc={4:['#fef3c7','#92400e'],3:['#d1fae5','#065f46'],2:['#dbeafe','#1e40af'],1:['#f3f4f6','#374151'],0:['#fee2e2','#991b1b']};
+  $('dt').innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#1a5c2e;color:#fff"><th style="padding:5px 3px">H</th><th style="padding:5px 3px">Par</th><th style="padding:5px 3px">HDP</th>${res.map(r=>`<th style="padding:5px 3px">${r.name.replace('さん','')}<br><span style="font-size:8px;opacity:.8">G/N/P</span></th>`).join('')}</tr></thead><tbody>${holes.map((h,idx)=>`<tr style="background:${idx%2===0?'#f9fafb':'#fff'}"><td style="text-align:center;font-weight:700;color:#1a5c2e;padding:4px 3px">${h.hole}</td><td style="text-align:center;color:#6b7280;padding:4px 3px">${h.par||'-'}</td><td style="text-align:center;color:#9ca3af;padding:4px 3px">${h.hdp||'-'}</td>${res.map(r=>{const hp=r.hp.find(p=>p.hole===h.hole);if(!hp?.g)return`<td style="text-align:center;color:#ccc;padding:4px 2px">-</td>`;const c=pc[hp.p];return`<td style="text-align:center;padding:3px 2px"><span style="font-weight:700">${hp.g}</span>/<span style="color:#666">${hp.net}</span>/<span style="background:${c[0]};color:${c[1]};border-radius:3px;padding:1px 3px;font-weight:900">${hp.p}</span></td>`;}).join('')}</tr>`).join('')}<tr style="background:#e8f5ed;border-top:2px solid #1a5c2e"><td colspan="3" style="text-align:center;font-weight:900;color:#1a5c2e;padding:7px 3px">合計pt</td>${res.map(r=>`<td style="text-align:center;font-family:'Bebas Neue',sans-serif;font-size:20px;color:#1a5c2e;padding:4px">${r.tot}</td>`).join('')}</tr></tbody></table></div>`;
+}
+
+function show(n){
+  [1,2,3,4,5].forEach(i=>{
+    const el=$('s'+i);
+    const tab=$('t'+i);
+    if(el)el.classList.toggle('hidden',i!==n);
+    if(tab)tab.classList.toggle('on',i===n);
+  });
+}
+
+function goStep2(){
+  courseName=$('cname').value.trim();
+  // 既に作られていなければビルド、あれば現状維持
+  if(!$('nm0'))buildPlayers();
+  applyToPlayers();
+  updHC();
+  show(2);
+  window.scrollTo(0,0);
+}
+function goStep3(){
+  calcHC();
+  if(!$('par_1'))buildHoles();
+  applyToHoles();
+  show(3);
+  window.scrollTo(0,0);
+}
+function goStep4(){renderResults();show(4);window.scrollTo(0,0);}
+
+function resetAll(){
+  showConfirmDialog(
+    '新しいラウンドを始めますか？\n現在の入力データがリセットされます。',
+    function(){
+      doResetAll();
+    }
+  );
+}
+
+function doResetAll(){
+  // 全入力をクリア
+  if($('cname'))$('cname').value='';
+  courseName='';
+  importedData=null;
+  if($('rawText'))$('rawText').value='';
+  if($('ocrOk'))$('ocrOk').classList.add('hidden');
+  if($('ocrErr'))$('ocrErr').classList.add('hidden');
+  // プレーヤー入力クリア
+  [0,1,2,3].forEach(i=>{
+    if($('nm'+i))$('nm'+i).value='';
+    if($('sc'+i))$('sc'+i).value='';
+  });
+  // ホール入力クリア
+  for(let h=1;h<=18;h++){
+    if($('par_'+h))$('par_'+h).value='';
+    if($('hdp_'+h))$('hdp_'+h).value='';
+    [0,1,2,3].forEach(i=>{
+      const inp=$(`s_${h}_${i}`);
+      if(inp){
+        inp.value='';
+        inp.dataset.point='';
+        inp.style.background='#fff';
+        inp.style.color='#000';
+        inp.style.borderColor='#d1d5db';
+      }
+      const net=$(`n_${h}_${i}`);
+      if(net)net.innerHTML='';
+      const mark=$(`m_${h}_${i}`);
+      if(mark)mark.style.display='none';
+    });
+  }
+  // 履歴テーブルもクリア
+  if($('hb'))$('hb').innerHTML='';
+  HC=[0,0,0,0];
+  NS=['Aさん','Bさん','Cさん','Dさん'];
+  show(1);
+  window.scrollTo(0,0);
+}
+
+// ===== 保存・履歴機能 =====
+function saveRound(){
+  const holes=getHoleData();
+  const res=[0,1,2,3].map(i=>{
+    let tot=0,grossTot=0,netTot=0;
+    const hp=holes.map(h=>{
+      const inp=$(`s_${h.hole}_${i}`);
+      const g=parseInt(inp?.value);
+      const hs=getHS(HC[i],h.hdp);
+      if(!isNaN(g)&&g>0&&h.par>0){
+        const p=calcPt(g,h.par,hs);
+        tot+=p;grossTot+=g;netTot+=(g-hs);
+        return{...h,g,hs,net:g-hs,p};
+      }
+      return{...h,g:null,hs,net:null,p:null};
+    });
+    return{name:NS[i],hc:HC[i],tot,grossTot,netTot,hp};
+  });
+  
+  const record={
+    id:Date.now(),
+    date:new Date().toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    courseName:courseName||'(無名コース)',
+    results:res,
+    holes:holes
+  };
+  
+  const saved=JSON.parse(localStorage.getItem('stableford_history')||'[]');
+  saved.unshift(record);
+  // 最大20件まで保存
+  if(saved.length>20)saved.length=20;
+  localStorage.setItem('stableford_history',JSON.stringify(saved));
+  
+  alert('✓ 保存しました！\n「履歴を見る」から確認できます。');
+  renderHistory();
+}
+
+function renderHistory(){
+  const saved=JSON.parse(localStorage.getItem('stableford_history')||'[]');
+  const con=$('histList');
+  if(!con)return;
+  if(saved.length===0){
+    con.innerHTML='<div style="text-align:center;color:#9ca3af;padding:20px;font-size:13px">保存されたラウンドはありません</div>';
+    return;
+  }
+  con.innerHTML=saved.map(r=>{
+    const top=r.results.slice().sort((a,b)=>b.tot-a.tot)[0];
+    return `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:8px">
+      <div style="margin-bottom:10px">
+        <div style="font-size:13px;font-weight:900;color:#1a5c2e">${r.courseName}</div>
+        <div style="font-size:10px;color:#6b7280;margin-top:2px">${r.date}</div>
+        <div style="font-size:11px;color:#374151;margin-top:4px">🥇 ${top.name} ${top.tot}pt</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button type="button" data-action="loadRound" data-arg="${r.id}" style="flex:1;background:#1a5c2e;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">📊 表示</button>
+        <button type="button" data-action="deleteRound" data-arg="${r.id}" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">🗑 削除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function loadRound(id){
+  const saved=JSON.parse(localStorage.getItem('stableford_history')||'[]');
+  const r=saved.find(x=>x.id===id);
+  if(!r)return;
+  // 結果画面に表示
+  courseName=r.courseName;
+  const rl=['g','s','b',''],md=['🥇','🥈','🥉','4'];
+  const sortedRes=r.results.slice().sort((a,b)=>b.tot-a.tot);
+  const COLS=['#ef4444','#3b82f6','#f59e0b','#8b5cf6'];
+  $('rc').innerHTML=`<div class="card">${courseName?`<div class="cname">⛳ ${courseName}<div style="font-size:10px;color:#6b7280;font-weight:400;margin-top:3px">${r.date} (保存済)</div></div>`:''}<div class="ctit">🏆 最終結果</div>${sortedRes.map((rr,i)=>`<div class="rrank"><div class="rnum ${rl[i]}">${md[i]}</div><div style="width:8px;height:38px;border-radius:4px;background:${COLS[i]}"></div><div style="flex:1"><div class="rname">${rr.name}</div><div class="rdet">グロス${rr.grossTot} / ネット${rr.netTot} / 差HC${rr.hc}</div></div><div class="rpt">${rr.tot}<span>pt</span></div></div>`).join('')}</div>`;
+  
+  const pc={4:['#fef3c7','#92400e'],3:['#d1fae5','#065f46'],2:['#dbeafe','#1e40af'],1:['#f3f4f6','#374151'],0:['#fee2e2','#991b1b']};
+  $('dt').innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#1a5c2e;color:#fff"><th style="padding:5px 3px">H</th><th style="padding:5px 3px">Par</th><th style="padding:5px 3px">HDP</th>${sortedRes.map(rr=>`<th style="padding:5px 3px">${rr.name.replace('さん','')}<br><span style="font-size:8px;opacity:.8">G/N/P</span></th>`).join('')}</tr></thead><tbody>${r.holes.map((h,idx)=>`<tr style="background:${idx%2===0?'#f9fafb':'#fff'}"><td style="text-align:center;font-weight:700;color:#1a5c2e;padding:4px 3px">${h.hole}</td><td style="text-align:center;color:#6b7280;padding:4px 3px">${h.par||'-'}</td><td style="text-align:center;color:#9ca3af;padding:4px 3px">${h.hdp||'-'}</td>${sortedRes.map(rr=>{const hp=rr.hp.find(p=>p.hole===h.hole);if(!hp?.g)return`<td style="text-align:center;color:#ccc;padding:4px 2px">-</td>`;const c=pc[hp.p];return`<td style="text-align:center;padding:3px 2px"><span style="font-weight:700">${hp.g}</span>/<span style="color:#666">${hp.net}</span>/<span style="background:${c[0]};color:${c[1]};border-radius:3px;padding:1px 3px;font-weight:900">${hp.p}</span></td>`;}).join('')}</tr>`).join('')}<tr style="background:#e8f5ed;border-top:2px solid #1a5c2e"><td colspan="3" style="text-align:center;font-weight:900;color:#1a5c2e;padding:7px 3px">合計pt</td>${sortedRes.map(rr=>`<td style="text-align:center;font-family:'Bebas Neue',sans-serif;font-size:20px;color:#1a5c2e;padding:4px">${rr.tot}</td>`).join('')}</tr></tbody></table></div>`;
+  
+  show(4);
+  window.scrollTo(0,0);
+}
+
+function deleteRound(id){
+  // confirm()はArtifact環境で動かないことがあるため、独自確認
+  const saved=JSON.parse(localStorage.getItem('stableford_history')||'[]');
+  const target=saved.find(x=>x.id===id);
+  if(!target)return;
+  
+  // 確認ダイアログ表示
+  showConfirmDialog(
+    `「${target.courseName}」の記録を削除しますか？`,
+    function(){
+      const filtered=saved.filter(x=>x.id!==id);
+      localStorage.setItem('stableford_history',JSON.stringify(filtered));
+      renderHistory();
+    }
+  );
+}
+
+function showHistory(){
+  renderHistory();
+  show(5);
+  window.scrollTo(0,0);
+}
+
+// ===== 貼り付けから一括取り込み =====
+let importedData=null;
+
+function copyPrompt(){
+  const t=$('aiPrompt');
+  t.select();
+  navigator.clipboard.writeText(t.value).then(()=>{
+    const btn=event.target;
+    const orig=btn.textContent;
+    btn.textContent='✓コピー済';
+    btn.style.background='#059669';
+    setTimeout(()=>{btn.textContent=orig;btn.style.background='#1a5c2e';},1500);
+  }).catch(()=>{
+    alert('コピーできませんでした。手動で選択してコピーしてください。');
+  });
+}
+
+function parseRawText(){
+  const text=$('rawText').value.trim();
+  if(!text){
+    showOcrErr('テキストが空です。AIの返答を貼り付けてください。');
+    return;
+  }
+  
+  try{
+    const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+    const data={courseName:'',players:[],pars:[],hdps:[]};
+    
+    lines.forEach(line=>{
+      if(line.startsWith('GOLF=')){
+        data.courseName=line.substring(5).trim();
+      }else if(line.match(/^P[1-4]=/)){
+        const parts=line.substring(3).split(',').map(s=>s.trim());
+        if(parts.length>=2){
+          const name=parts[0];
+          const total=parseInt(parts[1])||null;
+          const holes=parts.slice(2,20).map(s=>parseInt(s)||null);
+          data.players.push({name,totalScore:total,holes});
+        }
+      }else if(line.startsWith('PAR=')){
+        data.pars=line.substring(4).split(',').map(s=>parseInt(s.trim())||0);
+      }else if(line.startsWith('HDP=')){
+        data.hdps=line.substring(4).split(',').map(s=>parseInt(s.trim())||0);
+      }
+    });
+    
+    if(data.players.length===0){
+      showOcrErr('プレーヤー情報が見つかりません。\n形式を確認してください（例: P1=名前,合計,1H,2H...）');
+      return;
+    }
+    
+    // holeInfo構築
+    data.holeInfo=[];
+    for(let i=0;i<18;i++){
+      data.holeInfo.push({hole:i+1,par:data.pars[i]||0,hdp:data.hdps[i]||0});
+    }
+    
+    importedData=data;
+    if(data.courseName)$('cname').value=data.courseName;
+    
+    let msg=`✓ 取り込み成功！\n\n`;
+    msg+=`ゴルフ場: ${data.courseName||'(未入力)'}\n`;
+    msg+=`プレーヤー: ${data.players.length}名\n`;
+    data.players.forEach((p,i)=>{
+      msg+=`  ${i+1}. ${p.name} (合計${p.totalScore||'?'})\n`;
+    });
+    msg+=`Par: ${data.pars.length}ホール / HDP: ${data.hdps.length}ホール\n\n`;
+    msg+=`「② メンバー登録へ」を押すと全データが反映されます。`;
+    showOcrOk(msg);
+    
+  }catch(e){
+    showOcrErr('取り込みエラー: '+e.message+'\n形式を確認してください。');
+  }
+}
+
+function showOcrErr(msg){
+  $('ocrOk').classList.add('hidden');
+  $('ocrErr').textContent=msg;
+  $('ocrErr').classList.remove('hidden');
+}
+
+function showOcrOk(msg){
+  $('ocrErr').classList.add('hidden');
+  $('ocrOk').textContent=msg;
+  $('ocrOk').classList.remove('hidden');
+}
+
+function applyToPlayers(){
+  if(!importedData||importedData._appliedToPlayers)return;
+  importedData.players.slice(0,4).forEach((p,i)=>{
+    if($('nm'+i)&&p.name)$('nm'+i).value=p.name;
+    if($('sc'+i)&&p.totalScore)$('sc'+i).value=p.totalScore;
+  });
+  importedData._appliedToPlayers=true;
+  updHC();
+}
+
+function applyToHoles(){
+  if(!importedData||importedData._appliedToHoles)return;
+  if(importedData.holeInfo){
+    importedData.holeInfo.forEach(h=>{
+      if($('par_'+h.hole)&&h.par)$('par_'+h.hole).value=h.par;
+      if($('hdp_'+h.hole)&&h.hdp)$('hdp_'+h.hole).value=h.hdp;
+    });
+  }
+  importedData.players.slice(0,4).forEach((p,i)=>{
+    if(!p.holes||!p.holes.length)return;
+    p.holes.forEach((sc,idx)=>{
+      const hole=idx+1;
+      const el=$(`s_${hole}_${i}`);
+      if(el&&sc){el.value=sc;}
+    });
+  });
+  importedData._appliedToHoles=true;
+  for(let h=1;h<=18;h++){
+    refreshHdpMarks(h);
+    updAllPt(h);
+  }
+}
+
+// ===== すべてのボタンをaddEventListenerで処理 =====
+// DOMContentLoadedを待たず、即座に登録（このスクリプトはbody末尾にあるので安全）
+(function setupClickHandler(){
+  function handleClick(e){
+    const btn=e.target.closest('[data-action]');
+    if(!btn)return;
+    e.preventDefault();
+    e.stopPropagation();
+    const action=btn.dataset.action;
+    const arg=btn.dataset.arg;
+    try{
+      switch(action){
+        case 'goStep2':goStep2();break;
+        case 'goStep3':goStep3();break;
+        case 'goStep4':goStep4();break;
+        case 'show':show(parseInt(arg));break;
+        case 'showHistory':showHistory();break;
+        case 'saveRound':saveRound();break;
+        case 'resetAll':resetAll();break;
+        case 'loadRound':loadRound(parseInt(arg));break;
+        case 'deleteRound':deleteRound(parseInt(arg));break;
+        case 'copyPrompt':copyPrompt();break;
+        case 'parseRawText':parseRawText();break;
+        case 'confirmOK':confirmOK();break;
+        case 'confirmCancel':confirmCancel();break;
+        default:console.warn('未定義action:',action);
+      }
+    }catch(err){
+      console.error('Action error:',action,err);
+      alert('エラー: '+err.message);
+    }
+  }
+  // documentに直接登録（bodyより確実）
+  document.addEventListener('click',handleClick,false);
+  document.addEventListener('touchend',function(e){
+    const btn=e.target.closest('[data-action]');
+    if(btn){
+      // touchendでも処理（モバイル対応強化）
+      // ただしダブル発火を防ぐためデフォルト動作で済ます
+    }
+  },{passive:true});
+})();
+
+</script>
+
+</body>
+</html>
