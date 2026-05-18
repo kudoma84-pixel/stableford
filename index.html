@@ -16,7 +16,11 @@
 html,body{width:100%;min-height:100vh;min-height:-webkit-fill-available;overflow-x:hidden}
 body{font-family:'Noto Sans JP',sans-serif;background:#0f2d1a;-webkit-text-size-adjust:100%;padding-bottom:env(safe-area-inset-bottom);touch-action:manipulation}
 input,textarea,button,select{font-size:16px;touch-action:manipulation}
-input[type="number"]{font-size:16px}
+input[type="number"]{font-size:16px;-webkit-appearance:none;}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;}
+input.si,input.miniinp,input.psi{enterkeyhint:next;}
+input.psi:last-of-type{enterkeyhint:done;}
 .hdr{background:linear-gradient(135deg,#0f2d1a,#1a5c2e);padding:16px 16px 14px;text-align:center;border-bottom:2px solid #c9a84c}
 .hdr h1{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#c9a84c;letter-spacing:3px}
 .hdr p{color:#a0c4a8;font-size:10px;margin-top:2px}
@@ -91,10 +95,10 @@ input{font-family:inherit}
 </div>
 <div class="wrap">
 <div class="tabs">
-<button onclick="show(1)" class="tab on" id="t1">🏌️スタート</button>
+<button onclick="show(1)" class="tab on" id="t1">🏠トップ</button>
 <button onclick="show(2)" class="tab" id="t2" style="display:none"></button>
-<button onclick="show(3)" class="tab" id="t3">②スコア</button>
-<button onclick="show(4)" class="tab" id="t4">③結果</button>
+<button onclick="show(3)" class="tab" id="t3">📝スコア</button>
+<button onclick="show(4)" class="tab" id="t4">🏆結果</button>
 <button onclick="showHistory()" class="tab" id="t5">📚履歴</button>
 <button onclick="show(6)" class="tab" id="t6">❓使い方</button>
 </div>
@@ -105,7 +109,7 @@ input{font-family:inherit}
 <div class="ctit">📥 AIテキストを貼り付け</div>
 <div style="font-size:11px;color:#6b7280;margin-bottom:6px;">AIでテキスト化したスコアを貼り付けて「取り込む」を押すと全データが自動入力されます。詳しくは「❓使い方」タブへ。</div>
 <div style="display:flex;gap:8px;align-items:center;">
-<textarea id="rawText" placeholder="GOLF=〜から始まるテキストを貼り付け" style="flex:1;height:44px;border:1.5px solid #d1d5db;border-radius:8px;padding:10px;font-family:monospace;font-size:16px;background:#fff;resize:none;line-height:1.2;overflow:hidden"></textarea>
+<textarea id="rawText" placeholder="" style="flex:1;height:44px;border:1.5px solid #d1d5db;border-radius:8px;padding:10px;font-family:monospace;font-size:16px;background:#fff;resize:none;line-height:1.2;overflow:hidden"></textarea>
 <button onclick="parseRawText()" class="btn btng" style="width:80px;padding:10px;font-size:12px;flex-shrink:0;height:44px;">✓取込</button>
 </div>
 <div id="ocrErr" class="hidden" style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;font-size:12px;color:#dc2626;margin-top:8px;line-height:1.5;white-space:pre-wrap"></div>
@@ -114,7 +118,7 @@ input{font-family:inherit}
 
 <div class="card">
 <div class="ctit">ゴルフ場名</div>
-<input class="cinput" id="cname" type="text" placeholder="例：大宮ゴルフコース">
+<input class="cinput" id="cname" type="text" placeholder="">
 </div>
 
 <div class="card">
@@ -345,7 +349,7 @@ function confirmCancel(){
 
 function buildPlayers(){
   const dn=['','','',''];
-  $('pi').innerHTML=[0,1,2,3].map(i=>`<div class="prow"><div class="pcol" style="background:${COLS[i]}"></div><div class="pname-wrap"><div class="ilbl">名前</div><input class="pni" id="nm${i}" type="text" value="${dn[i]}" oninput="updHC()"></div><div class="pscore-wrap"><div class="ilbl">スコア</div><input class="psi" id="sc${i}" type="number" placeholder="-" oninput="updHC()"></div></div>`).join('');
+  $('pi').innerHTML=[0,1,2,3].map(i=>`<div class="prow"><div class="pcol" style="background:${COLS[i]}"></div><div class="pname-wrap"><div class="ilbl">名前</div><input class="pni" id="nm${i}" type="text" enterkeyhint="next" value="${dn[i]}" oninput="updHC()"></div><div class="pscore-wrap"><div class="ilbl">スコア</div><input class="psi" id="sc${i}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="${i<3?'next':'done'}" placeholder="-" oninput="updHC()"></div></div>`).join('');
 }
 
 function calcHC(){
@@ -374,8 +378,8 @@ function buildNine(id,start,end){
   const phdr=NS.map((n,i)=>`<div><div class="phdr" style="background:${COLS[i]}"></div><div style="font-size:9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</div></div>`).join('');
   let html=`<div class="hg hd"><div>H</div><div>Par</div><div>HDP</div>${phdr}</div>`;
   for(let h=start;h<=end;h++){
-    const inp=[0,1,2,3].map(i=>`<div class="scwrap"><span class="hcmark" id="m_${h}_${i}" style="display:none"></span><input class="si" id="s_${h}_${i}" type="number" min="1" max="15" placeholder="-" oninput="updPt(${h},${i})"><div class="netshow" id="n_${h}_${i}"></div></div>`).join('');
-    html+=`<div class="hg"><div class="hno">${h}</div><input class="miniinp" id="par_${h}" type="number" min="3" max="6" placeholder="P" oninput="updAllPt(${h})"><input class="miniinp" id="hdp_${h}" type="number" min="1" max="18" placeholder="H" oninput="refreshHdpMarks(${h});updAllPt(${h})">${inp}</div>`;
+    const inp=[0,1,2,3].map(i=>`<div class="scwrap"><span class="hcmark" id="m_${h}_${i}" style="display:none"></span><input class="si" id="s_${h}_${i}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" min="1" max="15" placeholder="-" oninput="updPt(${h},${i});autoNext('s_${h}_${i}')"><div class="netshow" id="n_${h}_${i}"></div></div>`).join('');
+    html+=`<div class="hg"><div class="hno">${h}</div><input class="miniinp" id="par_${h}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" min="3" max="6" placeholder="P" oninput="updAllPt(${h});autoNext('par_${h}')"><input class="miniinp" id="hdp_${h}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" min="1" max="18" placeholder="H" oninput="refreshHdpMarks(${h});updAllPt(${h});autoNext('hdp_${h}')">${inp}</div>`;
   }
   const pfx=start===1?'f':'b';
   const tc=[0,1,2,3].map(i=>`<div class="tc" id="${pfx}p_${i}">-</div>`).join('');
@@ -445,15 +449,24 @@ function updPt(hn,pi){
 
 function updTotals(){
   [0,1,2,3].forEach(i=>{
-    let fr=0,bk=0;
+    let fr=0,bk=0,gross=0;
     for(let h=1;h<=18;h++){
       const inp=$(`s_${h}_${i}`);
       const p=parseInt(inp?.dataset.point??'');
+      const v=parseInt(inp?.value??'');
       if(!isNaN(p)){if(h<=9)fr+=p;else bk+=p;}
+      if(!isNaN(v)&&v>0)gross+=v;
     }
     if($('fp_'+i))$('fp_'+i).textContent=fr||'-';
     if($('bp_'+i))$('bp_'+i).textContent=bk||'-';
+    // グロス合計をトップページのスコア欄に自動反映
+    if(gross>0&&$('sc'+i)){
+      $('sc'+i).value=gross;
+    }
   });
+  // 差ハンデを再計算
+  calcHC();
+  updHC();
 }
 
 function getHoleData(){
@@ -512,16 +525,19 @@ function goStep2(){
 function goStep3(){
   courseName=$('cname').value.trim();
   calcHC();
-  // ホール入力欄を常に再構築してからデータを適用
-  buildHoles();
-  if(importedData){
-    importedData._appliedToHoles=false;
-    applyToHoles();
+  // ホール入力欄がまだなければ作る、あれば維持
+  if(!$('par_1')){
+    buildHoles();
+    if(importedData){
+      importedData._appliedToHoles=false;
+      applyToHoles();
+    }
   }
   show(3);
   window.scrollTo(0,0);
 }
 function goStep4(){renderResults();show(4);window.scrollTo(0,0);}
+function backToScore(){show(3);window.scrollTo(0,0);}
 
 function resetAll(){
   doResetAll();
@@ -617,20 +633,27 @@ function renderHistory(){
     con.innerHTML=saved.map(r=>{
       const results=r.results||[];
       const top=results.length>0?results.slice().sort((a,b)=>b.tot-a.tot)[0]:null;
-      return `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:8px">
+      return `<div id="card_${r.id}" style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:8px">
         <div style="margin-bottom:10px">
           <div style="font-size:13px;font-weight:900;color:#1a5c2e">${r.courseName||'(不明)'}</div>
           <div style="font-size:10px;color:#6b7280;margin-top:2px">${r.date||''}</div>
           <div style="font-size:11px;color:#374151;margin-top:4px">${top?'🥇 '+top.name+' '+top.tot+'pt':''}</div>
         </div>
-        <div style="display:flex;gap:8px">
+        <div id="btns_${r.id}" style="display:flex;gap:8px">
           <button type="button" onclick="loadRound(${r.id})" style="flex:1;background:#1a5c2e;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">📊 表示</button>
           <button type="button" onclick="deleteRound(${r.id})" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">🗑 削除</button>
+        </div>
+        <div id="confirmId_${r.id}" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#dc2626;font-weight:700;text-align:center;">
+          本当に削除しますか？
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="doDeleteRound(${r.id})" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px">削除する</button>
+            <button onclick="cancelDelete(${r.id})" style="flex:1;background:#fff;border:2px solid #6b7280;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;color:#374151">キャンセル</button>
+          </div>
         </div>
       </div>`;
     }).join('');
   }catch(e){
-    con.innerHTML='<div style="text-align:center;color:#dc2626;padding:20px;font-size:13px">表示エラーが発生しました。履歴をリセットしてください。</div><button onclick="localStorage.removeItem(\'stableford_history\');renderHistory();" style="display:block;width:100%;padding:12px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;margin-top:8px;cursor:pointer">履歴をリセット</button>';
+    con.innerHTML='<div style="text-align:center;color:#dc2626;padding:20px;font-size:13px">表示エラーが発生しました。</div>';
   }
 }
 
@@ -653,11 +676,27 @@ function loadRound(id){
 }
 
 function deleteRound(id){
+  // 表示・削除ボタンを隠して確認ボックスを表示
+  const btns=$('btns_'+id);
+  const confirm=$('confirmId_'+id);
+  if(btns)btns.style.display='none';
+  if(confirm)confirm.style.display='block';
+}
+
+function doDeleteRound(id){
   const saved=JSON.parse(localStorage.getItem('stableford_history')||'[]');
   const filtered=saved.filter(x=>x.id!==id);
   localStorage.setItem('stableford_history',JSON.stringify(filtered));
   renderHistory();
   show(5);
+}
+
+function cancelDelete(id){
+  // 確認ボックスを隠して表示・削除ボタンを戻す
+  const btns=$('btns_'+id);
+  const confirm=$('confirmId_'+id);
+  if(confirm)confirm.style.display='none';
+  if(btns)btns.style.display='flex';
 }
 
 function showHistory(){
@@ -792,6 +831,47 @@ function applyToHoles(){
 // ===== 初期化 =====
 buildPlayers();
 updHC();
+
+// 入力後に次のフィールドへ自動移動
+function autoNext(currentId){
+  const el=$(currentId);
+  if(!el)return;
+  const val=el.value;
+  if(val.length>=2){
+    moveToNext(el);
+  }
+}
+
+function moveToNext(el){
+  const inputs=Array.from(document.querySelectorAll('input.si,input.miniinp,input.psi'));
+  const idx=inputs.indexOf(el);
+  if(idx>=0&&idx<inputs.length-1){
+    inputs[idx+1].focus();
+    inputs[idx+1].select();
+  } else if(idx===inputs.length-1){
+    el.blur();
+  }
+}
+
+// 数字のみ入力バリデーション（type=text化に伴う対応）
+document.addEventListener('input',function(e){
+  const el=e.target;
+  if(el.inputMode==='numeric'||el.pattern==='[0-9]*'){
+    const v=el.value.replace(/[^0-9]/g,'');
+    if(el.value!==v)el.value=v;
+  }
+});
+
+// Enterキーで次へ移動
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'||e.key==='Go'||e.keyCode===13){
+    const el=document.activeElement;
+    if(el&&(el.classList.contains('si')||el.classList.contains('miniinp')||el.classList.contains('psi'))){
+      e.preventDefault();
+      moveToNext(el);
+    }
+  }
+});
 
 
 </script>
