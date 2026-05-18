@@ -2,6 +2,9 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1034,15 +1037,15 @@ document.addEventListener('touchend',function(e){
 },{ passive:true });
 
 function updateApp(){
-  // キャッシュをクリアして最新版をリロード
   if('caches' in window){
     caches.keys().then(function(names){
-      names.forEach(function(name){caches.delete(name);});
+      Promise.all(names.map(function(name){return caches.delete(name);})).then(function(){
+        window.location.href=window.location.href.split('?')[0]+'?t='+Date.now();
+      });
     });
+  } else {
+    window.location.href=window.location.href.split('?')[0]+'?t='+Date.now();
   }
-  // タイムスタンプ付きでリロード（キャッシュ回避）
-  var url=location.href.split('?')[0]+'?v='+Date.now();
-  location.replace(url);
 }
 
 // ===== 初期化 =====
