@@ -106,7 +106,8 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <button onclick="show(6)" class="tab" id="t6">❓使い方</button>
 </div>
 <div id="s1">
-<button type="button" onclick="resetAll()" class="btn btnp" style="margin-bottom:14px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
+<button type="button" onclick="resetAll()" class="btn btnp" style="margin-bottom:8px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
+<button type="button" onclick="updateApp()" class="btn btno" style="margin-bottom:14px;font-size:13px;">🔃 アプリを最新版に更新する</button>
 <button type="button" onclick="showCourseDiv()" class="btn btng" style="margin-bottom:14px;">⛳ コース登録・管理</button>
 
 <div class="card">
@@ -1042,6 +1043,18 @@ document.addEventListener('touchend',function(e){
     el.style.opacity='';
   },150);
 },{ passive:true });
+
+function updateApp(){
+  // キャッシュをクリアして最新版をリロード
+  if('caches' in window){
+    caches.keys().then(function(names){
+      names.forEach(function(name){caches.delete(name);});
+    });
+  }
+  // タイムスタンプ付きでリロード（キャッシュ回避）
+  var url=location.href.split('?')[0]+'?v='+Date.now();
+  location.replace(url);
+}
 
 // ===== 初期化 =====
 
