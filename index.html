@@ -104,7 +104,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <button onclick="show(1)" class="tab on" id="t1">🏠トップ</button>
 <button onclick="show(2)" class="tab" id="t2" style="display:none"></button>
 <button onclick="show(3)" class="tab" id="t3">📝スコア</button>
-<button onclick="show(4)" class="tab" id="t4">🏆結果</button>
+<button onclick="goStep4()" class="tab" id="t4">🏆結果</button>
 <button onclick="showHistory()" class="tab" id="t5">📚履歴</button>
 <button onclick="show(6)" class="tab" id="t6">❓使い方</button>
 </div>
@@ -1313,7 +1313,10 @@ function autoNext(currentId){
 }
 
 function moveToNext(el){
-  const inputs=Array.from(document.querySelectorAll('input.si,input.miniinp,input.psi'));
+  // Par・HDPが入力済みの場合はsiのみ対象、未入力の場合は全て対象
+  const parFilled=document.getElementById('par_1')&&document.getElementById('par_1').value!=='';
+  const selector=parFilled?'input.si,input.psi':'input.si,input.miniinp,input.psi';
+  const inputs=Array.from(document.querySelectorAll(selector));
   const idx=inputs.indexOf(el);
   if(idx>=0&&idx<inputs.length-1){
     inputs[idx+1].focus();
