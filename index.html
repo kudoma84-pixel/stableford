@@ -104,6 +104,7 @@ input{font-family:inherit}
 </div>
 <div id="s1">
 <button type="button" onclick="resetAll()" class="btn btnp" style="margin-bottom:14px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
+<button type="button" onclick="showCourseDiv()" class="btn btng" style="margin-bottom:14px;">⛳ コース登録・管理</button>
 
 <div class="card">
 <div class="ctit">📥 AIテキストを貼り付け</div>
@@ -114,6 +115,19 @@ input{font-family:inherit}
 </div>
 <div id="ocrErr" class="hidden" style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;font-size:12px;color:#dc2626;margin-top:8px;line-height:1.5;white-space:pre-wrap"></div>
 <div id="ocrOk" class="hidden" style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:10px;font-size:12px;color:#065f46;margin-top:8px;line-height:1.5;font-weight:700;white-space:pre-wrap"></div>
+<button type="button" id="registerCourseBtn" onclick="registerCourseFromImport()" style="display:none;width:100%;margin-top:8px;background:#1a5c2e;color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;">⛳ このコースのPar・HDPを登録する</button>
+<div id="courseNameInputArea" style="display:none;margin-top:8px;background:#e8f5ed;border-radius:10px;padding:12px;">
+<div style="font-size:13px;font-weight:700;color:#1a5c2e;margin-bottom:4px;">コース名を登録してください</div>
+<div style="font-size:12px;color:#6b7280;margin-bottom:10px;">ゴルフ場: <span id="importGolfName"></span></div>
+<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:4px;">前半（1〜9H）のコース名</div>
+<input id="importCourseNameOut" type="text" class="cinput" placeholder="例：東・OUT・Aコース" style="margin-bottom:10px;">
+<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:4px;">後半（10〜18H）のコース名</div>
+<input id="importCourseNameIn" type="text" class="cinput" placeholder="例：西・IN・Bコース" style="margin-bottom:10px;">
+<div style="display:flex;gap:8px;">
+<button type="button" onclick="saveImportedCourse()" style="flex:2;background:#1a5c2e;color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;">💾 登録する</button>
+<button type="button" onclick="cancelImportedCourse()" style="flex:1;background:#fff;border:2px solid #6b7280;color:#374151;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;">戻る</button>
+</div>
+</div>
 </div>
 
 <div class="card">
@@ -133,8 +147,37 @@ input{font-family:inherit}
 
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 <button onclick="goStep3()" class="btn btnp">📊 スコアを見る →</button>
-</div>
 
+<div id="courseDiv" style="display:none">
+<div style="max-width:480px;margin:0 auto;padding:0 14px;">
+<div class="card">
+<div class="ctit">⛳ コース登録・管理</div>
+<div style="font-size:12px;color:#6b7280;margin-bottom:10px;line-height:1.6;">登録したコースを読み込むと、Par・HDPが自動入力されます。</div>
+<input id="ngName" type="text" class="cinput" placeholder="ゴルフ場名" style="margin-bottom:8px;">
+<input id="ncName" type="text" class="cinput" placeholder="コース名（東・西・OUTなど）" style="margin-bottom:8px;">
+<select id="ncStart" style="width:100%;padding:12px;border:2px solid #d1d5db;border-radius:12px;font-size:16px;background:#fff;margin-bottom:10px;font-family:inherit;">
+<option value="out">OUTスタート（1番から）</option>
+<option value="in">INスタート（10番から）</option>
+</select>
+<button type="button" onclick="toggleCourseInput()" class="btn btng" style="margin-bottom:8px;">📝 Par・HDPを入力する</button>
+<div id="courseInputArea" style="display:none;margin-top:8px;">
+<div style="display:grid;grid-template-columns:32px 1fr 1fr;gap:4px;background:#1a5c2e;color:#fff;padding:8px;border-radius:8px;text-align:center;font-size:12px;font-weight:700;margin-bottom:6px;">
+<div>H</div><div>Par</div><div>HDP</div>
+</div>
+<div id="courseHoleInputs"></div>
+<button type="button" onclick="saveCourse()" class="btn btnp" style="margin-top:10px;">💾 このコースを保存</button>
+</div>
+</div>
+<div class="card">
+<div class="ctit">登録済みコース</div>
+<div id="savedCoursesList"><div style="text-align:center;color:#9ca3af;padding:16px;font-size:13px;">登録済みコースはありません</div></div>
+</div>
+<div style="margin-bottom:14px;">
+<button type="button" onclick="hideCourseDiv()" class="btn btno" style="display:block;width:100%;">✕ 閉じる</button>
+</div>
+</div>
+</div>
+</div>
 <div id="s2" class="hidden">
 </div>
 <div id="s3" class="hidden">
@@ -167,6 +210,7 @@ input{font-family:inherit}
 <button type="button" onclick="saveRound()" class="btn btng" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">💾 このラウンドを保存</button>
 <button type="button" onclick="show(3)" class="btn btno" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">← スコア修正</button>
 <button type="button" onclick="resetAll()" class="btn btnp" style="display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
+<button type="button" onclick="showCourseDiv()" class="btn btng" style="margin-bottom:14px;">⛳ コース登録・管理</button>
 </div>
 </div>
 
@@ -411,8 +455,10 @@ function refreshHdpMarks(h){
   [0,1,2,3].forEach(i=>{
     const mark=$(`m_${h}_${i}`);
     if(!mark)return;
+    const inp=$(`s_${h}_${i}`);
+    const hasScore=inp&&inp.value&&inp.value!=='';
     const hs=getHS(HC[i],hdp||0);
-    if(hs>0){mark.textContent='▼'+hs;mark.style.display='block';}
+    if(hs>0&&hasScore){mark.textContent='▼'+hs;mark.style.display='block';}
     else{mark.style.display='none';}
   });
 }
@@ -503,6 +549,9 @@ function renderResults(){
 }
 
 function show(n){
+  // コースDivを閉じる
+  var cd=document.getElementById('courseDiv');
+  if(cd)cd.style.display='none';
   [1,2,3,4,5,6].forEach(i=>{
     const el=$('s'+i);
     const tab=$('t'+i);
@@ -617,7 +666,7 @@ function saveRound(){
   if(saved.length>20)saved.length=20;
   localStorage.setItem('stableford_history',JSON.stringify(saved));
   
-  alert('✓ 保存しました！\n「履歴を見る」から確認できます。');
+  alert('saved');
   renderHistory();
 }
 
@@ -718,7 +767,7 @@ function copyPrompt(){
     btn.style.background='#059669';
     setTimeout(()=>{btn.textContent=orig;btn.style.background='#1a5c2e';},1500);
   }).catch(()=>{
-    alert('コピーできませんでした。手動で選択してコピーしてください。');
+    alert('copy failed');
   });
 }
 
@@ -776,11 +825,73 @@ function parseRawText(){
     });
     updHC();
     
-    showOcrOk(`✓ 取り込み成功！\nゴルフ場: ${data.courseName||'(未入力)'}\nプレーヤー: ${data.players.map(p=>p.name).join('・')}\n\n内容を確認して「③ スコア入力へ」を押してください。`);
+    // コース登録ボタンを表示（Par・HDPデータがある場合）
+    var registerBtn=$('registerCourseBtn');
+    if(registerBtn){
+      if(data.holeInfo&&data.holeInfo.length>0){
+        registerBtn.style.display='block';
+        registerBtn.dataset.courseName=data.courseName||'';
+      } else {
+        registerBtn.style.display='none';
+      }
+    }
+    
+    showOcrOk('取り込み成功！\nゴルフ場: '+(data.courseName||'(未入力)')+'\nプレーヤー: '+data.players.map(function(p){return p.name;}).join('・')+'\n\n内容を確認して「📊 スコアを見る」を押してください。');
     
   }catch(e){
     showOcrErr('取り込みエラー: '+e.message+'\n形式を確認してください。');
   }
+}
+
+function registerCourseFromImport(){
+  if(!importedData||!importedData.holeInfo)return;
+  var gn=importedData.courseName||'';
+  var btn=$('registerCourseBtn');
+  if(!btn)return;
+  // コース名入力欄を表示
+  btn.style.display='none';
+  var inputArea=$('courseNameInputArea');
+  if(inputArea){
+    inputArea.style.display='block';
+    $('importCourseName').value='';
+    $('importGolfName').textContent=gn;
+  }
+}
+
+function saveImportedCourse(){
+  if(!importedData||!importedData.holeInfo)return;
+  var gn=importedData.courseName||'';
+  var cnOut=$('importCourseNameOut').value.trim();
+  var cnIn=$('importCourseNameIn').value.trim();
+  if(!cnOut&&!cnIn){alert('name required');return;}
+  var list=getCourses();
+  // 前半（1〜9H）を登録
+  if(cnOut){
+    var holesOut=importedData.holeInfo.filter(function(h){return h.hole<=9;}).map(function(h){
+      return {hole:h.hole,par:h.par||4,hdp:h.hdp||h.hole};
+    });
+    list.push({id:Date.now(),golfName:gn,courseName:cnOut,start:'out',holes:holesOut});
+  }
+  // 後半（10〜18H）を登録（1〜9Hとして扱う）
+  if(cnIn){
+    var holesIn=importedData.holeInfo.filter(function(h){return h.hole>=10;}).map(function(h){
+      return {hole:h.hole-9,par:h.par||4,hdp:h.hdp||h.hole-9};
+    });
+    list.push({id:Date.now()+1,golfName:gn,courseName:cnIn,start:'in',holes:holesIn});
+  }
+  saveCourseList(list);
+  $('courseNameInputArea').style.display='none';
+  var saved=[];
+  if(cnOut)saved.push(cnOut);
+  if(cnIn)saved.push(cnIn);
+  alert('saved: '+saved.join(' / '));
+}
+
+function cancelImportedCourse(){
+  var btn=$('registerCourseBtn');
+  var inputArea=$('courseNameInputArea');
+  if(btn)btn.style.display='block';
+  if(inputArea)inputArea.style.display='none';
 }
 
 function showOcrErr(msg){
@@ -829,6 +940,121 @@ function applyToHoles(){
 }
 
 // ===== 初期化 =====
+
+// ===== コース管理 =====
+function getCourses(){
+  try{return JSON.parse(localStorage.getItem('sf_courses')||'[]');}catch(e){return [];}
+}
+function saveCourseList(arr){localStorage.setItem('sf_courses',JSON.stringify(arr));}
+
+function showCourseDiv(){
+  var d=document.getElementById('courseDiv');
+  if(d)d.style.display='block';
+  renderCoursesList();
+  d.scrollIntoView({behavior:'smooth'});
+}
+function hideCourseDiv(){
+  var d=document.getElementById('courseDiv');
+  if(d)d.style.display='none';
+}
+function toggleCourseInput(){
+  var area=document.getElementById('courseInputArea');
+  if(!area)return;
+  if(area.style.display==='none'){
+    var html='';
+    for(var h=1;h<=18;h++){
+      html+='<div style="display:grid;grid-template-columns:32px 1fr 1fr;gap:4px;margin-bottom:6px;align-items:center;">';
+      html+='<div style="text-align:center;font-size:13px;font-weight:900;color:#1a5c2e;">'+h+'</div>';
+      html+='<input id="cp'+h+'" type="number" min="3" max="5" placeholder="Par" style="padding:10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:16px;text-align:center;width:100%;">';
+      html+='<input id="ch'+h+'" type="number" min="1" max="18" placeholder="HDP" style="padding:10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:16px;text-align:center;width:100%;">';
+      html+='</div>';
+    }
+    document.getElementById('courseHoleInputs').innerHTML=html;
+    area.style.display='block';
+  } else {
+    area.style.display='none';
+  }
+}
+function saveCourse(){
+  var gn=document.getElementById('ngName').value.trim();
+  var cn=document.getElementById('ncName').value.trim();
+  var st=document.getElementById('ncStart').value;
+  if(!gn||!cn){alert('name required');return;}
+  var holes=[];
+  for(var h=1;h<=18;h++){
+    var pe=document.getElementById('cp'+h);
+    var he=document.getElementById('ch'+h);
+    holes.push({hole:h,par:pe&&parseInt(pe.value)?parseInt(pe.value):4,hdp:he&&parseInt(he.value)?parseInt(he.value):h});
+  }
+  var list=getCourses();
+  list.push({id:Date.now(),golfName:gn,courseName:cn,start:st,holes:holes});
+  saveCourseList(list);
+  document.getElementById('ngName').value='';
+  document.getElementById('ncName').value='';
+  document.getElementById('courseHoleInputs').innerHTML='';
+  document.getElementById('courseInputArea').style.display='none';
+  renderCoursesList();
+  alert('saved');
+}
+function loadCourseToScore(id){
+  var list=getCourses();
+  var c=null;
+  for(var i=0;i<list.length;i++){if(list[i].id===id){c=list[i];break;}}
+  if(!c)return;
+  var cnEl=document.getElementById('cname');
+  if(cnEl)cnEl.value=c.golfName;
+  hideCourseDiv();
+  if(!document.getElementById('par_1'))buildHoles();
+  // startに応じてホール番号を調整
+  c.holes.forEach(function(h){
+    var holeNum=c.start==='in'?h.hole+9:h.hole;
+    var pe=document.getElementById('par_'+holeNum);
+    var he=document.getElementById('hdp_'+holeNum);
+    if(pe)pe.value=h.par;
+    if(he)he.value=h.hdp;
+    try{refreshHdpMarks(holeNum);updAllPt(holeNum);}catch(e){}
+  });
+  show(3);
+}
+function deleteCourseItem(id){
+  var btns=document.getElementById('cbtns_'+id);
+  var conf=document.getElementById('cdel_'+id);
+  if(btns)btns.style.display='none';
+  if(conf)conf.style.display='block';
+}
+function doDeleteCourseItem(id){
+  saveCourseList(getCourses().filter(function(c){return c.id!==id;}));
+  renderCoursesList();
+}
+function cancelDeleteCourseItem(id){
+  var btns=document.getElementById('cbtns_'+id);
+  var conf=document.getElementById('cdel_'+id);
+  if(conf)conf.style.display='none';
+  if(btns)btns.style.display='flex';
+}
+function renderCoursesList(){
+  var list=getCourses();
+  var con=document.getElementById('savedCoursesList');
+  if(!con)return;
+  if(list.length===0){
+    con.innerHTML='<div style="text-align:center;color:#9ca3af;padding:16px;font-size:13px;">登録済みコースはありません</div>';
+    return;
+  }
+  var html='';
+  list.forEach(function(c){
+    html+='<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:8px;">';
+    html+='<div style="font-size:14px;font-weight:900;color:#1a5c2e;">'+c.golfName+'</div>';
+    html+='<div style="font-size:12px;color:#6b7280;margin-top:2px;">'+c.courseName+' / '+(c.start==='out'?'前半(1〜9H)':'後半(10〜18H)')+'</div>';
+    html+='<div id="cbtns_'+c.id+'" style="display:flex;gap:8px;margin-top:10px;">';
+    html+='<button type="button" onclick="loadCourseToScore('+c.id+')" style="flex:2;background:#1a5c2e;color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;">📥 読み込む</button>';
+    html+='<button type="button" onclick="deleteCourseItem('+c.id+')" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;">🗑</button>';
+    html+='</div>';
+    html+='<div id="cdel_'+c.id+'" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;margin-top:8px;text-align:center;font-size:13px;color:#dc2626;font-weight:700;">削除しますか？';
+    html+='<div style="display:flex;gap:8px;margin-top:8px;"><button onclick="doDeleteCourseItem('+c.id+')" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;">削除</button>';
+    html+='<button onclick="cancelDeleteCourseItem('+c.id+')" style="flex:1;background:#fff;border:2px solid #6b7280;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;color:#374151;">戻る</button></div></div></div>';
+  });
+  con.innerHTML=html;
+}
 buildPlayers();
 updHC();
 
