@@ -8,6 +8,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
 <title>ステーブルフォード計算</title>
+<link rel="apple-touch-icon" href="IMG_9967.png">
+<link rel="icon" href="IMG_9967.png">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Bebas+Neue&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
@@ -71,7 +73,8 @@ input{font-family:inherit}
 .btn:active{transform:scale(.98);opacity:.9}
 .notice{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px;font-size:11px;color:#92400e;margin-bottom:10px;line-height:1.6}
 .hidden{display:none !important}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex !important}
 .modal-box{background:#fff;border-radius:16px;padding:24px;max-width:340px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3)}
 .modal-msg{font-size:16px;color:#1a1a1a;line-height:1.6;margin-bottom:20px;white-space:pre-wrap;text-align:center;font-weight:700;min-height:24px}
 .modal-btns{display:flex;gap:10px}
@@ -88,67 +91,47 @@ input{font-family:inherit}
 </div>
 <div class="wrap">
 <div class="tabs">
-<button class="tab on" id="t1" data-action="show" data-arg="1">①コース</button>
-<button class="tab" id="t2" data-action="show" data-arg="2">②メンバー</button>
-<button class="tab" id="t3" data-action="show" data-arg="3">③スコア</button>
-<button class="tab" id="t4" data-action="show" data-arg="4">④結果</button>
-<button class="tab" id="t5" data-action="showHistory">📚履歴</button>
-<button class="tab" id="t6" data-action="show" data-arg="6">❓使い方</button>
+<button onclick="show(1)" class="tab on" id="t1">🏌️スタート</button>
+<button onclick="show(2)" class="tab" id="t2" style="display:none"></button>
+<button onclick="show(3)" class="tab" id="t3">②スコア</button>
+<button onclick="show(4)" class="tab" id="t4">③結果</button>
+<button onclick="showHistory()" class="tab" id="t5">📚履歴</button>
+<button onclick="show(6)" class="tab" id="t6">❓使い方</button>
 </div>
 <div id="s1">
-<button type="button" class="btn btnp" data-action="resetAll" style="margin-bottom:14px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
+<button type="button" onclick="resetAll()" class="btn btnp" style="margin-bottom:14px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
+
+<div class="card">
+<div class="ctit">📥 AIテキストを貼り付け</div>
+<div style="font-size:11px;color:#6b7280;margin-bottom:6px;">AIでテキスト化したスコアを貼り付けて「取り込む」を押すと全データが自動入力されます。詳しくは「❓使い方」タブへ。</div>
+<div style="display:flex;gap:8px;align-items:center;">
+<textarea id="rawText" placeholder="GOLF=〜から始まるテキストを貼り付け" style="flex:1;height:44px;border:1.5px solid #d1d5db;border-radius:8px;padding:10px;font-family:monospace;font-size:16px;background:#fff;resize:none;line-height:1.2;overflow:hidden"></textarea>
+<button onclick="parseRawText()" class="btn btng" style="width:80px;padding:10px;font-size:12px;flex-shrink:0;height:44px;">✓取込</button>
+</div>
+<div id="ocrErr" class="hidden" style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;font-size:12px;color:#dc2626;margin-top:8px;line-height:1.5;white-space:pre-wrap"></div>
+<div id="ocrOk" class="hidden" style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:10px;font-size:12px;color:#065f46;margin-top:8px;line-height:1.5;font-weight:700;white-space:pre-wrap"></div>
+</div>
+
 <div class="card">
 <div class="ctit">ゴルフ場名</div>
 <input class="cinput" id="cname" type="text" placeholder="例：大宮ゴルフコース">
-<div style="margin-top:8px;font-size:10px;color:#6b7280;text-align:center">※スコアカードに表示されます</div>
-</div>
-<div class="card">
-<div class="ctit">📋 スコアカード貼り付け取り込み</div>
-<div class="notice">📌 <b>使い方</b>：①下の指示文をコピー → ②ChatGPT/Claudeアプリで画像と一緒に送信 → ③返ってきたテキストを下に貼り付け → ④「取り込む」を押す</div>
-
-<div style="margin-top:10px">
-<div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:5px">📝 ステップ①：この指示文をコピーしてAIに送信</div>
-<div style="position:relative">
-<textarea id="aiPrompt" readonly style="width:100%;height:170px;border:1.5px solid #d1d5db;border-radius:8px;padding:10px;font-family:monospace;font-size:16px;background:#f9fafb;resize:none;color:#374151" onclick="this.select()">スコアカードの画像を読み取り、以下の形式のみで出力。説明文不要。
-
-GOLF=ゴルフ場名
-P1=氏名,合計,1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H
-P2=氏名,合計,1H〜18H
-P3=氏名,合計,1H〜18H
-P4=氏名,合計,1H〜18H
-PAR=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H
-HDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H</textarea>
-<button data-action="copyPrompt" style="position:absolute;top:6px;right:6px;background:#1a5c2e;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:16px;font-weight:700;cursor:pointer">📋コピー</button>
-</div>
 </div>
 
-<div style="margin-top:14px">
-<div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:5px">📥 ステップ②：AIの返答をここに貼り付け</div>
-<textarea id="rawText" placeholder="GOLF=プレステージカントリークラブ&#10;P1=工藤昌彦,93,5,5,5,3,4,5,3,6,6,6,6,3,8,5,5,7,4,7&#10;P2=豊田健吾,97,6,8,4,3,7,5,4,6,5,6,6,4,5,6,6,5,3,8&#10;P3=関口健一,99,6,7,5,3,5,7,4,7,5,7,6,3,6,5,5,6,4,8&#10;P4=小川,108,8,5,5,4,5,9,3,7,8,7,6,5,5,7,7,6,5,6&#10;PAR=5,4,4,3,4,4,3,5,4,5,4,3,4,4,4,4,3,5&#10;HDP=3,9,15,13,1,7,17,5,11,4,10,16,2,8,14,12,18,6" style="width:100%;height:200px;border:1.5px solid #d1d5db;border-radius:8px;padding:10px;font-family:monospace;font-size:16px;background:#fff;resize:vertical"></textarea>
-</div>
-
-<button class="btn btng" style="margin-top:10px" data-action="parseRawText">✓ 取り込んで自動入力</button>
-
-<div id="ocrErr" class="hidden" style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;font-size:12px;color:#dc2626;margin-top:10px;line-height:1.5;white-space:pre-wrap"></div>
-<div id="ocrOk" class="hidden" style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:10px;font-size:12px;color:#065f46;margin-top:10px;line-height:1.5;font-weight:700;white-space:pre-wrap"></div>
-</div>
-<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-<button class="btn btnp" data-action="goStep2">② メンバー登録へ →</button>
-</div>
-<div id="s2" class="hidden">
 <div class="card">
 <div class="ctit">プレーヤー登録・当日スコア</div>
-<div class="notice">ラウンド終了後の合計スコアを入力。最少スコアを基準に差ハンデを自動計算します。</div>
+<div style="font-size:11px;color:#6b7280;margin-bottom:10px;">ラウンド終了後の合計スコアを入力。最少スコアを基準に差ハンデを自動計算します。</div>
 <div id="pi"></div>
-</div>
-<div class="card">
+<div style="margin-top:12px;">
 <div class="ctit">差ハンデ（自動計算）</div>
 <table class="hct"><thead><tr><th>名前</th><th>スコア</th><th>差HC</th></tr></thead><tbody id="hb"></tbody></table>
 </div>
-<div style="display:flex;gap:10px">
-<button class="btn btno" style="flex:1" data-action="show" data-arg="1">← 戻る</button>
-<button class="btn btnp" style="flex:2" data-action="goStep3">③ スコア入力へ →</button>
 </div>
+
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<button onclick="goStep3()" class="btn btnp">📊 スコアを見る →</button>
+</div>
+
+<div id="s2" class="hidden">
 </div>
 <div id="s3" class="hidden">
 <div class="card">
@@ -166,8 +149,8 @@ HDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H</textarea>
 <div class="card"><div class="ctit">前半（1〜9H）</div><div id="fn"></div></div>
 <div class="card"><div class="ctit">後半（10〜18H）</div><div id="bn"></div></div>
 <div style="display:flex;gap:10px;margin-bottom:14px">
-<button class="btn btno" style="flex:1" data-action="show" data-arg="2">← 戻る</button>
-<button class="btn btng" style="flex:2" data-action="goStep4">④ 結果を見る →</button>
+<button onclick="show(2)" class="btn btno" style="flex:1">← 戻る</button>
+<button onclick="goStep4()" class="btn btng" style="flex:2">④ 結果を見る →</button>
 </div>
 </div>
 <div id="s4" class="hidden">
@@ -177,9 +160,9 @@ HDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H</textarea>
 <div id="dt" style="max-width:100%;overflow-x:auto"></div>
 </div>
 <div style="clear:both;display:block;margin-top:20px;margin-bottom:40px">
-<button type="button" class="btn btng" data-action="saveRound" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">💾 このラウンドを保存</button>
-<button type="button" class="btn btno" data-action="show" data-arg="3" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">← スコア修正</button>
-<button type="button" class="btn btnp" data-action="resetAll" style="display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
+<button type="button" onclick="saveRound()" class="btn btng" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">💾 このラウンドを保存</button>
+<button type="button" onclick="show(3)" class="btn btno" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">← スコア修正</button>
+<button type="button" onclick="resetAll()" class="btn btnp" style="display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
 </div>
 </div>
 
@@ -190,7 +173,7 @@ HDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H</textarea>
 <div id="histList"></div>
 </div>
 <div style="margin-bottom:40px">
-<button type="button" class="btn btnp" data-action="show" data-arg="1" style="display:block;width:100%">← トップに戻る</button>
+<button type="button" onclick="show(1)" class="btn btnp" style="display:block;width:100%">← トップに戻る</button>
 </div>
 </div>
 
@@ -232,7 +215,11 @@ HDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H</div>
 <div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
 <div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">AIの返答を長押し→全選択→コピー</div><div style="font-size:12px;color:#374151;line-height:1.7;">GOLF=〜から始まるテキストが返ってきます。全部コピーしてください。</div></div>
 </div>
-</div>
+<div style="background:#fffbeb;border-left:4px solid #c9a84c;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#92400e;margin-top:8px;line-height:1.8;">
+💡 <b>2回目以降は指示文不要！</b><br>
+ChatGPT・Claude・CopilotはAIとのチャット履歴が残っています。<br>
+最初に指示文を送ったチャットを開いて<b>画像を添付するだけ</b>で、同じ形式で自動出力されます。<br>
+毎回コピペする手間がなくなります！
 </div>
 
 <!-- STEP3 -->
@@ -313,17 +300,17 @@ HDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H</div>
 </div><!-- card end -->
 
 <div style="margin-bottom:40px">
-<button type="button" class="btn btnp" data-action="show" data-arg="1" style="display:block;width:100%">← トップに戻る</button>
+<button type="button" onclick="show(1)" class="btn btnp" style="display:block;width:100%">← トップに戻る</button>
 </div>
 </div>
 </div>
 
-<div id="confirmModal" class="modal-overlay hidden">
+<div id="confirmModal" class="modal-overlay">
 <div class="modal-box">
 <div class="modal-msg" id="confirmMsg">確認</div>
 <div class="modal-btns">
-<button type="button" class="modal-btn modal-btn-cancel" data-action="confirmCancel">キャンセル</button>
-<button type="button" class="modal-btn modal-btn-ok" data-action="confirmOK">OK</button>
+<button type="button" onclick="confirmCancel()" class="modal-btn modal-btn-cancel">キャンセル</button>
+<button type="button" onclick="confirmOK()" class="modal-btn modal-btn-ok">OK</button>
 </div>
 </div>
 </div>
@@ -339,11 +326,11 @@ function showConfirmDialog(message,onOK){
   const msgEl=$('confirmMsg');
   if(msgEl)msgEl.textContent=message;
   const modal=$('confirmModal');
-  if(modal)modal.classList.remove('hidden');
+  if(modal)modal.classList.add('active');
 }
 function confirmOK(){
   const modal=$('confirmModal');
-  if(modal)modal.classList.add('hidden');
+  if(modal)modal.classList.remove('active');
   if(_confirmCallback){
     const cb=_confirmCallback;
     _confirmCallback=null;
@@ -352,12 +339,12 @@ function confirmOK(){
 }
 function confirmCancel(){
   const modal=$('confirmModal');
-  if(modal)modal.classList.add('hidden');
+  if(modal)modal.classList.remove('active');
   _confirmCallback=null;
 }
 
 function buildPlayers(){
-  const dn=['Aさん','Bさん','Cさん','Dさん'];
+  const dn=['','','',''];
   $('pi').innerHTML=[0,1,2,3].map(i=>`<div class="prow"><div class="pcol" style="background:${COLS[i]}"></div><div class="pname-wrap"><div class="ilbl">名前</div><input class="pni" id="nm${i}" type="text" value="${dn[i]}" oninput="updHC()"></div><div class="pscore-wrap"><div class="ilbl">スコア</div><input class="psi" id="sc${i}" type="number" placeholder="-" oninput="updHC()"></div></div>`).join('');
 }
 
@@ -506,23 +493,26 @@ function show(n){
   [1,2,3,4,5,6].forEach(i=>{
     const el=$('s'+i);
     const tab=$('t'+i);
-    if(el)el.classList.toggle('hidden',i!==n);
+    if(el){
+      if(i===n){
+        el.style.display='block';
+        el.classList.remove('hidden');
+      } else {
+        el.style.display='none';
+        el.classList.add('hidden');
+      }
+    }
     if(tab)tab.classList.toggle('on',i===n);
   });
 }
 
 function goStep2(){
-  courseName=$('cname').value.trim();
-  // 既に作られていなければビルド、あれば現状維持
-  if(!$('nm0'))buildPlayers();
-  applyToPlayers();
-  updHC();
-  show(2);
-  window.scrollTo(0,0);
+  goStep3();
 }
 function goStep3(){
+  courseName=$('cname').value.trim();
   calcHC();
-  if(!$('par_1'))buildHoles();
+  buildHoles();
   applyToHoles();
   show(3);
   window.scrollTo(0,0);
@@ -530,12 +520,7 @@ function goStep3(){
 function goStep4(){renderResults();show(4);window.scrollTo(0,0);}
 
 function resetAll(){
-  showConfirmDialog(
-    '新しいラウンドを始めますか？\n現在の入力データがリセットされます。',
-    function(){
-      doResetAll();
-    }
-  );
+  doResetAll();
 }
 
 function doResetAll(){
@@ -574,6 +559,7 @@ function doResetAll(){
   if($('hb'))$('hb').innerHTML='';
   HC=[0,0,0,0];
   NS=['Aさん','Bさん','Cさん','Dさん'];
+  buildPlayers();
   show(1);
   window.scrollTo(0,0);
 }
@@ -623,20 +609,25 @@ function renderHistory(){
     con.innerHTML='<div style="text-align:center;color:#9ca3af;padding:20px;font-size:13px">保存されたラウンドはありません</div>';
     return;
   }
-  con.innerHTML=saved.map(r=>{
-    const top=r.results.slice().sort((a,b)=>b.tot-a.tot)[0];
-    return `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:8px">
-      <div style="margin-bottom:10px">
-        <div style="font-size:13px;font-weight:900;color:#1a5c2e">${r.courseName}</div>
-        <div style="font-size:10px;color:#6b7280;margin-top:2px">${r.date}</div>
-        <div style="font-size:11px;color:#374151;margin-top:4px">🥇 ${top.name} ${top.tot}pt</div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button type="button" data-action="loadRound" data-arg="${r.id}" style="flex:1;background:#1a5c2e;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">📊 表示</button>
-        <button type="button" data-action="deleteRound" data-arg="${r.id}" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">🗑 削除</button>
-      </div>
-    </div>`;
-  }).join('');
+  try{
+    con.innerHTML=saved.map(r=>{
+      const results=r.results||[];
+      const top=results.length>0?results.slice().sort((a,b)=>b.tot-a.tot)[0]:null;
+      return `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:8px">
+        <div style="margin-bottom:10px">
+          <div style="font-size:13px;font-weight:900;color:#1a5c2e">${r.courseName||'(不明)'}</div>
+          <div style="font-size:10px;color:#6b7280;margin-top:2px">${r.date||''}</div>
+          <div style="font-size:11px;color:#374151;margin-top:4px">${top?'🥇 '+top.name+' '+top.tot+'pt':''}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button type="button" onclick="loadRound(${r.id})" style="flex:1;background:#1a5c2e;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">📊 表示</button>
+          <button type="button" onclick="deleteRound(${r.id})" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">🗑 削除</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    con.innerHTML='<div style="text-align:center;color:#dc2626;padding:20px;font-size:13px">表示エラーが発生しました。履歴をリセットしてください。</div><button onclick="localStorage.removeItem(\'stableford_history\');renderHistory();" style="display:block;width:100%;padding:12px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;margin-top:8px;cursor:pointer">履歴をリセット</button>';
+  }
 }
 
 function loadRound(id){
@@ -658,20 +649,11 @@ function loadRound(id){
 }
 
 function deleteRound(id){
-  // confirm()はArtifact環境で動かないことがあるため、独自確認
   const saved=JSON.parse(localStorage.getItem('stableford_history')||'[]');
-  const target=saved.find(x=>x.id===id);
-  if(!target)return;
-  
-  // 確認ダイアログ表示
-  showConfirmDialog(
-    `「${target.courseName}」の記録を削除しますか？`,
-    function(){
-      const filtered=saved.filter(x=>x.id!==id);
-      localStorage.setItem('stableford_history',JSON.stringify(filtered));
-      renderHistory();
-    }
-  );
+  const filtered=saved.filter(x=>x.id!==id);
+  localStorage.setItem('stableford_history',JSON.stringify(filtered));
+  renderHistory();
+  show(5);
 }
 
 function showHistory(){
@@ -740,15 +722,18 @@ function parseRawText(){
     importedData=data;
     if(data.courseName)$('cname').value=data.courseName;
     
-    let msg=`✓ 取り込み成功！\n\n`;
-    msg+=`ゴルフ場: ${data.courseName||'(未入力)'}\n`;
-    msg+=`プレーヤー: ${data.players.length}名\n`;
-    data.players.forEach((p,i)=>{
-      msg+=`  ${i+1}. ${p.name} (合計${p.totalScore||'?'})\n`;
+    // フラグをリセットして毎回反映できるようにする
+    importedData._appliedToPlayers=false;
+    importedData._appliedToHoles=false;
+    
+    // プレーヤー情報をスタートページに即座に反映
+    data.players.slice(0,4).forEach((p,i)=>{
+      if($('nm'+i)&&p.name)$('nm'+i).value=p.name;
+      if($('sc'+i)&&p.totalScore)$('sc'+i).value=p.totalScore;
     });
-    msg+=`Par: ${data.pars.length}ホール / HDP: ${data.hdps.length}ホール\n\n`;
-    msg+=`「② メンバー登録へ」を押すと全データが反映されます。`;
-    showOcrOk(msg);
+    updHC();
+    
+    showOcrOk(`✓ 取り込み成功！\nゴルフ場: ${data.courseName||'(未入力)'}\nプレーヤー: ${data.players.map(p=>p.name).join('・')}\n\n内容を確認して「③ スコア入力へ」を押してください。`);
     
   }catch(e){
     showOcrErr('取り込みエラー: '+e.message+'\n形式を確認してください。');
@@ -800,48 +785,10 @@ function applyToHoles(){
   }
 }
 
-// ===== すべてのボタンをaddEventListenerで処理 =====
-// DOMContentLoadedを待たず、即座に登録（このスクリプトはbody末尾にあるので安全）
-(function setupClickHandler(){
-  function handleClick(e){
-    const btn=e.target.closest('[data-action]');
-    if(!btn)return;
-    e.preventDefault();
-    e.stopPropagation();
-    const action=btn.dataset.action;
-    const arg=btn.dataset.arg;
-    try{
-      switch(action){
-        case 'goStep2':goStep2();break;
-        case 'goStep3':goStep3();break;
-        case 'goStep4':goStep4();break;
-        case 'show':show(parseInt(arg));break;
-        case 'showHistory':showHistory();break;
-        case 'saveRound':saveRound();break;
-        case 'resetAll':resetAll();break;
-        case 'loadRound':loadRound(parseInt(arg));break;
-        case 'deleteRound':deleteRound(parseInt(arg));break;
-        case 'copyPrompt':copyPrompt();break;
-        case 'parseRawText':parseRawText();break;
-        case 'confirmOK':confirmOK();break;
-        case 'confirmCancel':confirmCancel();break;
-        default:console.warn('未定義action:',action);
-      }
-    }catch(err){
-      console.error('Action error:',action,err);
-      alert('エラー: '+err.message);
-    }
-  }
-  // documentに直接登録（bodyより確実）
-  document.addEventListener('click',handleClick,false);
-  document.addEventListener('touchend',function(e){
-    const btn=e.target.closest('[data-action]');
-    if(btn){
-      // touchendでも処理（モバイル対応強化）
-      // ただしダブル発火を防ぐためデフォルト動作で済ます
-    }
-  },{passive:true});
-})();
+// ===== 初期化 =====
+buildPlayers();
+updHC();
+
 
 </script>
 </body>
