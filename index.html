@@ -349,7 +349,7 @@ function confirmCancel(){
 
 function buildPlayers(){
   const dn=['','','',''];
-  $('pi').innerHTML=[0,1,2,3].map(i=>`<div class="prow"><div class="pcol" style="background:${COLS[i]}"></div><div class="pname-wrap"><div class="ilbl">名前</div><input class="pni" id="nm${i}" type="text" enterkeyhint="next" value="${dn[i]}" oninput="updHC()"></div><div class="pscore-wrap"><div class="ilbl">スコア</div><input class="psi" id="sc${i}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="${i<3?'next':'done'}" placeholder="-" oninput="updHC()"></div></div>`).join('');
+  $('pi').innerHTML=[0,1,2,3].map(i=>`<div class="prow"><div class="pcol" style="background:${COLS[i]}"></div><div class="pname-wrap"><div class="ilbl">名前</div><input class="pni" id="nm${i}" type="text" enterkeyhint="next" value="${dn[i]}" oninput="updHC()"></div><div class="pscore-wrap"><div class="ilbl">スコア</div><input class="psi" id="sc${i}" type="text" inputmode="text" pattern="[0-9]*" enterkeyhint="${i<3?'next':'done'}" placeholder="-" oninput="updHC()"></div></div>`).join('');
 }
 
 function calcHC(){
@@ -378,8 +378,8 @@ function buildNine(id,start,end){
   const phdr=NS.map((n,i)=>`<div><div class="phdr" style="background:${COLS[i]}"></div><div style="font-size:9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</div></div>`).join('');
   let html=`<div class="hg hd"><div>H</div><div>Par</div><div>HDP</div>${phdr}</div>`;
   for(let h=start;h<=end;h++){
-    const inp=[0,1,2,3].map(i=>`<div class="scwrap"><span class="hcmark" id="m_${h}_${i}" style="display:none"></span><input class="si" id="s_${h}_${i}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" min="1" max="15" placeholder="-" oninput="updPt(${h},${i});autoNext('s_${h}_${i}')"><div class="netshow" id="n_${h}_${i}"></div></div>`).join('');
-    html+=`<div class="hg"><div class="hno">${h}</div><input class="miniinp" id="par_${h}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" min="3" max="6" placeholder="P" oninput="updAllPt(${h});autoNext('par_${h}')"><input class="miniinp" id="hdp_${h}" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" min="1" max="18" placeholder="H" oninput="refreshHdpMarks(${h});updAllPt(${h});autoNext('hdp_${h}')">${inp}</div>`;
+    const inp=[0,1,2,3].map(i=>`<div class="scwrap"><span class="hcmark" id="m_${h}_${i}" style="display:none"></span><input class="si" id="s_${h}_${i}" type="text" inputmode="text" pattern="[0-9]*" enterkeyhint="next" min="1" max="15" placeholder="-" oninput="updPt(${h},${i});autoNext('s_${h}_${i}')"><div class="netshow" id="n_${h}_${i}"></div></div>`).join('');
+    html+=`<div class="hg"><div class="hno">${h}</div><input class="miniinp" id="par_${h}" type="text" inputmode="text" pattern="[0-9]*" enterkeyhint="next" min="3" max="6" placeholder="P" oninput="updAllPt(${h});autoNext('par_${h}')"><input class="miniinp" id="hdp_${h}" type="text" inputmode="text" pattern="[0-9]*" enterkeyhint="next" min="1" max="18" placeholder="H" oninput="refreshHdpMarks(${h});updAllPt(${h});autoNext('hdp_${h}')">${inp}</div>`;
   }
   const pfx=start===1?'f':'b';
   const tc=[0,1,2,3].map(i=>`<div class="tc" id="${pfx}p_${i}">-</div>`).join('');
