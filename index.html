@@ -1313,10 +1313,8 @@ function autoNext(currentId){
 }
 
 function moveToNext(el){
-  // Par・HDPが入力済みの場合はsiのみ対象、未入力の場合は全て対象
-  const parFilled=document.getElementById('par_1')&&document.getElementById('par_1').value!=='';
-  const selector=parFilled?'input.si,input.psi':'input.si,input.miniinp,input.psi';
-  const inputs=Array.from(document.querySelectorAll(selector));
+  // 常にスコア欄（si）とプレーヤー欄（psi）のみ対象
+  const inputs=Array.from(document.querySelectorAll('input.si,input.psi'));
   const idx=inputs.indexOf(el);
   if(idx>=0&&idx<inputs.length-1){
     inputs[idx+1].focus();
