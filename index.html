@@ -641,41 +641,30 @@ function resetAll(){
 }
 
 function doResetAll(){
-  // 全入力をクリア
   if($('cname'))$('cname').value='';
   courseName='';
   importedData=null;
   if($('rawText'))$('rawText').value='';
   if($('ocrOk'))$('ocrOk').classList.add('hidden');
   if($('ocrErr'))$('ocrErr').classList.add('hidden');
+  if($('registerCourseBtn'))$('registerCourseBtn').style.display='none';
+  if($('courseNameInputArea'))$('courseNameInputArea').style.display='none';
   // プレーヤー入力クリア
   [0,1,2,3].forEach(i=>{
     if($('nm'+i))$('nm'+i).value='';
     if($('sc'+i))$('sc'+i).value='';
   });
-  // ホール入力クリア
-  for(let h=1;h<=18;h++){
-    if($('par_'+h))$('par_'+h).value='';
-    if($('hdp_'+h))$('hdp_'+h).value='';
-    [0,1,2,3].forEach(i=>{
-      const inp=$(`s_${h}_${i}`);
-      if(inp){
-        inp.value='';
-        inp.dataset.point='';
-        inp.style.background='#fff';
-        inp.style.color='#000';
-        inp.style.borderColor='#d1d5db';
-      }
-      const net=$(`n_${h}_${i}`);
-      if(net)net.innerHTML='';
-      const mark=$(`m_${h}_${i}`);
-      if(mark)mark.style.display='none';
-    });
-  }
+  // スコアページのホールDOMを完全削除（次回buildHolesで再構築）
+  if($('fn'))$('fn').innerHTML='';
+  if($('bn'))$('bn').innerHTML='';
   // 履歴テーブルもクリア
   if($('hb'))$('hb').innerHTML='';
+  // 結果ページもクリア
+  if($('rc'))$('rc').innerHTML='';
+  if($('dt'))$('dt').innerHTML='';
   HC=[0,0,0,0];
   NS=['Aさん','Bさん','Cさん','Dさん'];
+  localStorage.removeItem('sf_selected');
   buildPlayers();
   show(1);
   window.scrollTo(0,0);
