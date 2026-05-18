@@ -149,7 +149,7 @@ input{font-family:inherit}
 <div class="card"><div class="ctit">前半（1〜9H）</div><div id="fn"></div></div>
 <div class="card"><div class="ctit">後半（10〜18H）</div><div id="bn"></div></div>
 <div style="display:flex;gap:10px;margin-bottom:14px">
-<button onclick="show(2)" class="btn btno" style="flex:1">← 戻る</button>
+<button onclick="show(1)" class="btn btno" style="flex:1">← 戻る</button>
 <button onclick="goStep4()" class="btn btng" style="flex:2">④ 結果を見る →</button>
 </div>
 </div>
@@ -512,8 +512,12 @@ function goStep2(){
 function goStep3(){
   courseName=$('cname').value.trim();
   calcHC();
+  // ホール入力欄を常に再構築してからデータを適用
   buildHoles();
-  applyToHoles();
+  if(importedData){
+    importedData._appliedToHoles=false;
+    applyToHoles();
+  }
   show(3);
   window.scrollTo(0,0);
 }
