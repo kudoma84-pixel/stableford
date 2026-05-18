@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>ステーブルフォード アプリ概要</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Bebas+Neue&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:#f0f4f0;color:#1a1a1a;}
+
+/* ヒーロー */
+.hero{background:linear-gradient(160deg,#0a1f10,#1a5c2e 60%,#0f3d1e);padding:50px 20px 40px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:‘⛳’;position:absolute;font-size:180px;opacity:.05;top:-20px;right:-20px;}
+.hero-label{font-size:11px;color:#a0c4a8;letter-spacing:3px;margin-bottom:8px;}
+.hero h1{font-family:‘Bebas Neue’,sans-serif;font-size:42px;color:#c9a84c;letter-spacing:5px;line-height:1;}
+.hero h2{font-size:14px;color:#fff;font-weight:700;margin-top:10px;line-height:1.6;}
+.hero-divider{width:60px;height:2px;background:#c9a84c;margin:20px auto;}
+.hero-url{background:rgba(255,255,255,0.1);border-radius:10px;padding:10px 16px;display:inline-block;margin-top:4px;}
+.hero-url span{font-size:12px;color:#c9a84c;font-weight:700;word-break:break-all;}
+
+/* セクション共通 */
+.section{padding:28px 16px 0;}
+.sec-badge{display:inline-block;background:#c9a84c;color:#1a1a1a;font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;letter-spacing:1px;margin-bottom:10px;}
+.sec-title{font-size:22px;font-weight:900;color:#1a5c2e;line-height:1.3;margin-bottom:6px;}
+.sec-sub{font-size:13px;color:#6b7280;line-height:1.7;margin-bottom:16px;}
+
+/* カード */
+.card{background:#fff;border-radius:20px;padding:20px;margin-bottom:14px;box-shadow:0 2px 16px rgba(0,0,0,.08);}
+.card-title{font-size:15px;font-weight:900;color:#1a1a1a;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.card-title .icon{width:36px;height:36px;border-radius:10px;background:#e8f5ed;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.card p{font-size:13px;line-height:1.9;color:#374151;}
+
+/* ハイライトブロック */
+.highlight{background:linear-gradient(135deg,#e8f5ed,#d1fae5);border-radius:16px;padding:16px;margin:12px 0;}
+.highlight p{font-size:13px;line-height:1.9;color:#065f46;}
+
+/* ポイント表 */
+.pt-table{width:100%;border-collapse:collapse;margin-top:12px;}
+.pt-table th{background:#1a5c2e;color:#fff;padding:8px;text-align:center;font-size:12px;}
+.pt-table td{padding:8px;text-align:center;border-bottom:1px solid #e5e7eb;font-size:13px;}
+.pt-table tr:nth-child(even) td{background:#f9fafb;}
+.badge-eagle{background:#fef3c7;color:#92400e;border-radius:20px;padding:2px 10px;font-weight:700;font-size:12px;}
+.badge-birdie{background:#d1fae5;color:#065f46;border-radius:20px;padding:2px 10px;font-weight:700;font-size:12px;}
+.badge-par{background:#dbeafe;color:#1e40af;border-radius:20px;padding:2px 10px;font-weight:700;font-size:12px;}
+.badge-bogey{background:#f3f4f6;color:#374151;border-radius:20px;padding:2px 10px;font-weight:700;font-size:12px;}
+.badge-double{background:#fee2e2;color:#991b1b;border-radius:20px;padding:2px 10px;font-weight:700;font-size:12px;}
+
+/* 比較表 */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.compare-box{border-radius:14px;padding:14px;}
+.compare-box.bad{background:#fef2f2;border:2px solid #fca5a5;}
+.compare-box.good{background:#e8f5ed;border:2px solid #6ee7b7;}
+.compare-box h4{font-size:12px;font-weight:900;margin-bottom:8px;}
+.compare-box h4.red{color:#dc2626;}
+.compare-box h4.green{color:#1a5c2e;}
+.compare-box p{font-size:11px;line-height:1.7;color:#374151;}
+
+/* メリットリスト */
+.merit-list{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+.merit-item{display:flex;gap:12px;align-items:flex-start;}
+.merit-icon{width:40px;height:40px;border-radius:12px;background:#e8f5ed;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.merit-text h4{font-size:14px;font-weight:900;color:#1a5c2e;}
+.merit-text p{font-size:12px;color:#374151;margin-top:3px;line-height:1.7;}
+
+/* 具体例ボックス */
+.example{background:#f8faff;border:2px solid #dbeafe;border-radius:14px;padding:14px;margin-top:12px;}
+.example-title{font-size:12px;font-weight:900;color:#1e40af;margin-bottom:8px;}
+.example-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed #e5e7eb;font-size:12px;}
+.example-row:last-child{border-bottom:none;}
+.example-row .name{font-weight:700;color:#374151;}
+.example-row .score{color:#6b7280;}
+.example-row .hc{background:#e8f5ed;color:#1a5c2e;border-radius:20px;padding:2px 8px;font-weight:900;font-size:11px;}
+
+/* 星評価 */
+.stars{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.star-item{display:flex;align-items:center;gap:10px;}
+.star-label{font-size:12px;font-weight:700;color:#374151;width:120px;flex-shrink:0;}
+.star-bar{flex:1;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;}
+.star-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#1a5c2e,#2d8a4e);}
+.star-val{font-size:11px;font-weight:700;color:#1a5c2e;width:30px;text-align:right;}
+
+/* CTA */
+.cta{background:linear-gradient(135deg,#0f2d1a,#1a5c2e);border-radius:20px;padding:24px 20px;text-align:center;margin:16px 0;}
+.cta h3{font-family:‘Bebas Neue’,sans-serif;font-size:26px;color:#c9a84c;letter-spacing:3px;margin-bottom:8px;}
+.cta p{font-size:12px;color:#a0c4a8;margin-bottom:16px;line-height:1.7;}
+.cta-url{background:rgba(255,255,255,.1);border-radius:10px;padding:10px;font-size:13px;color:#c9a84c;font-weight:700;word-break:break-all;}
+
+.footer{background:#0f2d1a;padding:28px 20px;text-align:center;margin-top:8px;}
+.footer p{color:#6b9e78;font-size:12px;line-height:2;}
+.footer .url{color:#c9a84c;font-weight:700;}
+</style>
+
+</head>
+<body>
+
+<!-- ヒーロー -->
+
+<div class="hero">
+  <div class="hero-label">GOLF SCORING APP</div>
+  <h1>STABLEFORD</h1>
+  <h2>当日差ハンデ方式<br>ステーブルフォード自動計算アプリ</h2>
+  <div class="hero-divider"></div>
+  <div class="hero-url">
+    <span>https://kudoma84-pixel.github.io/stableford/</span>
+  </div>
+</div>
+
+<!-- ステーブルフォードとは -->
+
+<div class="section">
+  <div class="sec-badge">ABOUT</div>
+  <div class="sec-title">ステーブルフォードとは？</div>
+  <div class="sec-sub">1932年にイギリスで考案された、ゴルフの採点方式。世界中のアマチュアゴルファーに愛用されています。</div>
+
+  <div class="card">
+    <div class="card-title"><div class="icon">🎯</div>ポイント制で楽しむゴルフ</div>
+    <p>通常のストロークプレーは「合計打数が少ない人が勝ち」ですが、ステーブルフォードは<b>各ホールの結果をポイントに換算して合計を競います。</b></p>
+    <table class="pt-table">
+      <tr><th>ネットスコア</th><th>結果</th><th>ポイント</th></tr>
+      <tr><td>−2以下</td><td><span class="badge-eagle">イーグル以下</span></td><td><b>4点</b></td></tr>
+      <tr><td>−1</td><td><span class="badge-birdie">バーディー</span></td><td><b>3点</b></td></tr>
+      <tr><td>±0</td><td><span class="badge-par">パー</span></td><td><b>2点</b></td></tr>
+      <tr><td>+1</td><td><span class="badge-bogey">ボギー</span></td><td><b>1点</b></td></tr>
+      <tr><td>+2以上</td><td><span class="badge-double">ダブルボギー+</span></td><td><b>0点</b></td></tr>
+    </table>
+    <div class="highlight" style="margin-top:12px;">
+      <p>💡 <b>ダブルボギー以上は全て0点</b>なので、1ホールで大叩きしても影響が最小限。大叩きを引きずらずに次のホールに集中できます！</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="icon">🤝</div>ハンデがあるから誰でも対等に戦える</div>
+    <p>ステーブルフォードは<b>ネットスコア</b>（グロス打数からハンデを引いた打数）でポイントを計算します。ハンデが多い人ほど多くのホールで打数が引かれるため、<b>実力差があっても公平に戦えます。</b></p>
+    <div class="compare">
+      <div class="compare-box bad">
+        <h4 class="red">❌ 通常のストローク</h4>
+        <p>上手い人が圧倒的に有利。初心者はいつも負けてしまう。</p>
+      </div>
+      <div class="compare-box good">
+        <h4 class="green">✅ ステーブルフォード</h4>
+        <p>ハンデで差を埋めて誰でも優勝の可能性あり！</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 当日差ハンデの革新 -->
+
+<div class="section">
+  <div class="sec-badge">INNOVATION</div>
+  <div class="sec-title">「当日差ハンデ」で<br>オフィシャルHC不要に</div>
+  <div class="sec-sub">本来、ステーブルフォードはJGAなどが発行するオフィシャルハンデキャップが必要です。このアプリはそれを不要にしました。</div>
+
+  <div class="card">
+    <div class="card-title"><div class="icon">⚠️</div>従来の問題点</div>
+    <p>正式なステーブルフォードを行うには<b>オフィシャルハンデキャップ（HC）</b>が必要です。しかしオフィシャルHCを持っているゴルファーは限られており、仲間同士のラウンドでは使いにくい状況でした。</p>
+    <div class="compare" style="margin-top:12px;">
+      <div class="compare-box bad">
+        <h4 class="red">❌ 従来</h4>
+        <p>オフィシャルHC取得が必要。審査・登録・更新が面倒。持っていない人が多い。</p>
+      </div>
+      <div class="compare-box good">
+        <h4 class="green">✅ このアプリ</h4>
+        <p>当日のスコアだけでOK！登録不要・その場で計算。誰でも今すぐ使える。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="icon">💡</div>当日差ハンデの仕組み</div>
+    <p>4人の当日グロススコアを入力すると、<b>最少スコアの人を基準（ハンデ0）</b>に、他の人との差をそのままハンデとして使います。</p>
+    <div class="example">
+      <div class="example-title">📊 計算例</div>
+      <div class="example-row"><span class="name">Aさん</span><span class="score">93打（最少）</span><span class="hc">HC 0</span></div>
+      <div class="example-row"><span class="name">Bさん</span><span class="score">98打</span><span class="hc">HC 5</span></div>
+      <div class="example-row"><span class="name">Cさん</span><span class="score">105打</span><span class="hc">HC 12</span></div>
+      <div class="example-row"><span class="name">Dさん</span><span class="score">113打</span><span class="hc">HC 20</span></div>
+    </div>
+    <div class="highlight">
+      <p>💡 このハンデをHDP（ハンデキャップホール）順に各ホールへ配分。難しいホールから順番に1打ずつもらえる仕組みです。<b>その日の実力がそのままハンデに反映されるため、誰もが「今日の自分」で公平に戦えます。</b></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="icon">🏆</div>当日差ハンデの3つの効果</div>
+    <div class="merit-list">
+      <div class="merit-item">
+        <div class="merit-icon">⚖️</div>
+        <div class="merit-text">
+          <h4>実力差を公平に埋める</h4>
+          <p>スコア差がそのままハンデになるので、上手い人も初心者も同じ土俵で戦えます。その日の調子も反映されます。</p>
+        </div>
+      </div>
+      <div class="merit-item">
+        <div class="merit-icon">🎲</div>
+        <div class="merit-text">
+          <h4>誰でも優勝の可能性がある</h4>
+          <p>ハンデが大きい人でも好プレーが続けば逆転できます。最後まで諦めない展開になりやすく、全員が楽しめます。</p>
+        </div>
+      </div>
+      <div class="merit-item">
+        <div class="merit-icon">📝</div>
+        <div class="merit-text">
+          <h4>登録・申請が一切不要</h4>
+          <p>オフィシャルHCの取得には時間・費用・登録が必要ですが、当日差ハンデならその場でスコアを入力するだけ。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- なぜこのアプリが優秀か -->
+
+<div class="section">
+  <div class="sec-badge">WHY THIS APP</div>
+  <div class="sec-title">このアプリが優秀な理由</div>
+  <div class="sec-sub">「誰でも・すぐに・正確に」使えることにこだわって設計されています。</div>
+
+  <div class="card">
+    <div class="merit-list">
+      <div class="merit-item">
+        <div class="merit-icon">📱</div>
+        <div class="merit-text">
+          <h4>スマホだけで完結</h4>
+          <p>インストール不要。Safariで開くだけ。ホーム画面に追加すれば通常アプリのように起動できます。iPhone・Android両対応。</p>
+        </div>
+      </div>
+      <div class="merit-item">
+        <div class="merit-icon">⚡</div>
+        <div class="merit-text">
+          <h4>全て自動計算</h4>
+          <p>差ハンデ・HDP配分・ネットスコア・ポイント・順位を全て自動計算。電卓も表も一切不要です。</p>
+        </div>
+      </div>
+      <div class="merit-item">
+        <div class="merit-icon">🎨</div>
+        <div class="merit-text">
+          <h4>色でポイントが一目でわかる</h4>
+          <p>スコア入力のたびにセルが色付き表示。バーディーは緑、パーは青、ボギーはグレー、ダブルボギーは赤。視覚的に瞬時に把握できます。</p>
+        </div>
+      </div>
+      <div class="merit-item">
+        <div class="merit-icon">📋</div>
+        <div class="merit-text">
+          <h4>スコアカード画像から自動入力</h4>
+          <p>GDO・GORAのスコア画像をAI（ChatGPT等）でテキスト化して貼り付けるだけで全データ自動入力。手打ちの手間が大幅に減ります。</p>
+        </div>
+      </div>
+      <div class="merit-item">
+        <div class="merit-icon">💾</div>
+        <div class="merit-text">
+          <h4>履歴保存で振り返りができる</h4>
+          <p>結果を保存すれば過去20件まで閲覧・比較が可能。次のラウンドへのモチベーションにもなります。</p>
+        </div>
+      </div>
+      <div class="merit-item">
+        <div class="merit-icon">🆓</div>
+        <div class="merit-text">
+          <h4>完全無料・広告なし</h4>
+          <p>使用料・登録料・課金要素は一切ありません。メンバー全員に共有してもコストゼロです。</p>
+        </div>
+      </div>
+    </div>
+
+```
+<div style="margin-top:16px;">
+  <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;">他のゴルフアプリとの比較</div>
+  <div class="stars">
+    <div class="star-item"><span class="star-label">操作のシンプルさ</span><div class="star-bar"><div class="star-fill" style="width:95%"></div></div><span class="star-val">95</span></div>
+    <div class="star-item"><span class="star-label">計算の正確さ</span><div class="star-bar"><div class="star-fill" style="width:100%"></div></div><span class="star-val">100</span></div>
+    <div class="star-item"><span class="star-label">公平性</span><div class="star-bar"><div class="star-fill" style="width:98%"></div></div><span class="star-val">98</span></div>
+    <div class="star-item"><span class="star-label">導入のしやすさ</span><div class="star-bar"><div class="star-fill" style="width:90%"></div></div><span class="star-val">90</span></div>
+    <div class="star-item"><span class="star-label">コスト（無料度）</span><div class="star-bar"><div class="star-fill" style="width:100%"></div></div><span class="star-val">100</span></div>
+  </div>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- CTA -->
+
+<div class="section">
+  <div class="cta">
+    <h3>⛳ さあ始めよう</h3>
+    <p>インストール不要。今すぐアクセスして<br>ホーム画面に追加するだけ！</p>
+    <div class="cta-url">https://kudoma84-pixel.github.io/stableford/</div>
+  </div>
+</div>
+
+<div class="footer">
+  <p>⛳ STABLEFORD 当日差ハンデ方式</p>
+  <p class="url">https://kudoma84-pixel.github.io/stableford/</p>
+  <p>仲間と公平に、もっとゴルフを楽しもう。</p>
+</div>
+
+</body>
+</html>
