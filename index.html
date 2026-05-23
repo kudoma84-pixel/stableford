@@ -865,15 +865,19 @@ function parseRawText(){
     });
     updHC();
     
-    // コース登録ボタンを表示（Par・HDPデータがある場合）
+    // Par・HDPがある場合は自動でコース名入力欄を表示
     var registerBtn=$('registerCourseBtn');
-    if(registerBtn){
-      if(data.holeInfo&&data.holeInfo.length>0){
-        registerBtn.style.display='block';
-        registerBtn.dataset.courseName=data.courseName||'';
-      } else {
-        registerBtn.style.display='none';
-      }
+    var inputArea=$('courseNameInputArea');
+    var golfNameEl=$('importGolfName');
+    if(data.holeInfo&&data.holeInfo.length>0){
+      if(registerBtn)registerBtn.style.display='none';
+      if(golfNameEl)golfNameEl.textContent=data.courseName||'';
+      if($('importCourseNameOut'))$('importCourseNameOut').value='';
+      if($('importCourseNameIn'))$('importCourseNameIn').value='';
+      if(inputArea)inputArea.style.display='block';
+    } else {
+      if(registerBtn)registerBtn.style.display='none';
+      if(inputArea)inputArea.style.display='none';
     }
     
     showOcrOk('取り込み成功！\nゴルフ場: '+(data.courseName||'(未入力)')+'\nプレーヤー: '+data.players.map(function(p){return p.name;}).join('・')+'\n\n内容を確認して「📊 スコアを見る」を押してください。');
