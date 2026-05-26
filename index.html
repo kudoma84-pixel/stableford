@@ -1198,7 +1198,7 @@ async function processScoreImage(input){
     });
     progressBar.style.width='50%';
     var mediaType=file.type||'image/jpeg';
-    var prompt='このゴルフスコアカードの画像を読み取り、以下の形式のみで出力してください。説明文は不要です。\n\nGOLF=ゴルフ場名\nP1=氏名,合計,1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nP2=氏名,合計,1H~18H\nP3=氏名,合計,1H~18H\nP4=氏名,合計,1H~18H\nPAR=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nHDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\n\nプレーヤーが4人未満の場合はいる人数分だけ出力。スコアが読み取れないホールは0を入力。';
+    var prompt='このゴルフスコアカードの画像を読み取り、以下の形式のみで出力してください。説明文は不要です。\n\nGOLF=ゴルフ場名\nP1=氏名,合計,1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nP2=氏名,合計,1H~18H\nP3=氏名,合計,1H~18H\nP4=氏名,合計,1H~18H\nPAR=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nHDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\n\n重要：HDPはスコアカードの「HC」または「HDP」列の数値です。各ホールのハンディキャップ難易度を示す1〜18の数値で、1〜18が各1回ずつ使われます。スコアやボギー数ではありません。プレーヤーが4人未満の場合はいる人数分だけ出力。スコアが読み取れないホールは0を入力。';
     var response=await fetch('/api/claude',{
       method:'POST',
       headers:{
