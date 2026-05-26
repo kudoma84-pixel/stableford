@@ -609,17 +609,69 @@ function goStep2(){
 }
 function goStep3(){
   courseName=$('cname').value.trim();
-  calcHC();
-  // ホール入力欄がまだなければ作る、あれば維持
-  if(!$('par_1')){
-    buildHoles();
-    if(importedData){
-      importedData._appliedToHoles=false;
-      applyToHoles();
-    }
+  // ホールを必ず再構築
+  buildHoles();
+  // ① コース登録データのPar・HDPを先に適用
+  applyCourseDataToScore();
+  // ② スコアデータを適用（Par・HDPは上書きしない）
+  if(importedData){
+    importedData._appliedToHoles=false;
+    applyScoreOnly();
   }
+  calcHC();
   show(3);
   window.scrollTo(0,0);
+}
+
+function applyCourseDataToScore(){
+  var sc=getSelectedCourse();
+  if(!sc||!sc.holes)return;
+  sc.holes.forEach(function(h){
+    var holeNum=sc.start==='in'?h.hole+9:h.hole;
+    var pe=document.getElementById('par_'+holeNum);
+    var he=document.getElementById('hdp_'+holeNum);
+    if(pe)pe.value=h.par;
+    if(he)he.value=h.hdp;
+  });
+}
+
+function applyScoreOnly(){
+  if(!importedData||importedData._appliedToHoles)return;
+  // Par・HDPはコース登録データを優先、スコアのみ適用
+  var sc=getSelectedCourse();
+  if(!sc){
+    // コース未登録の場合はPar・HDPも適用
+    if(importedData.holeInfo){
+      importedData.holeInfo.forEach(h=>{
+        if($('par_'+h.hole)&&h.par)$('par_'+h.hole).value=h.par;
+        if($('hdp_'+h.hole)&&h.hdp)$('hdp_'+h.hole).value=h.hdp;
+      });
+    }
+  }
+  // スコアを適用
+  importedData.players.slice(0,4).forEach((p,i)=>{
+    if(!p.holes||!p.holes.length)return;
+    p.holes.forEach((score,idx)=>{
+      const hole=idx+1;
+      const el=$(`s_${hole}_${i}`);
+      if(el&&score){el.value=score;}
+    });
+  });
+  importedData._appliedToHoles=true;
+  // グロス合計をsc欄に反映
+  [0,1,2,3].forEach(i=>{
+    let gross=0;
+    for(let h=1;h<=18;h++){
+      const v=parseInt($(`s_${h}_${i}`)?.value||'0');
+      if(v>0)gross+=v;
+    }
+    if(gross>0&&$('sc'+i))$('sc'+i).value=gross;
+  });
+  calcHC();
+  for(let h=1;h<=18;h++){
+    refreshHdpMarks(h);
+    updAllPt(h);
+  }
 }
 function goStep4(){renderResults();show(4);window.scrollTo(0,0);}
 function backToScore(){show(3);window.scrollTo(0,0);}
