@@ -116,14 +116,16 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div class="card">
 <div class="ctit">📸 スコアカード写真から取り込む</div>
 <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">写真を選択するとAIが自動でスコアを読み取ります。</div>
-<div id="apiKeyArea" style="margin-bottom:8px;">
-<div style="font-size:11px;color:#6b7280;margin-bottom:4px;">APIキー（初回のみ入力）</div>
+<div id="apiKeyArea" style="margin-bottom:8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;">
+<div style="font-size:12px;font-weight:700;color:#1a5c2e;margin-bottom:6px;">🔑 APIキー設定</div>
+<div style="font-size:11px;color:#6b7280;margin-bottom:6px;" id="apiKeyStatus"></div>
 <div style="display:flex;gap:6px;">
 <input id="apiKeyInput" type="password" placeholder="sk-ant-api..." style="flex:1;padding:10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;background:#fff;">
 <button type="button" onclick="saveApiKey()" style="background:#1a5c2e;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;white-space:nowrap;">保存</button>
 </div>
-<div id="apiKeyStatus" style="font-size:11px;margin-top:4px;color:#6b7280;"></div>
+<button type="button" onclick="toggleApiKeyArea()" style="margin-top:6px;background:none;border:none;color:#6b7280;font-size:11px;cursor:pointer;text-decoration:underline;">▲ 閉じる</button>
 </div>
+<button type="button" onclick="toggleApiKeyArea()" id="apiKeyToggleBtn" style="display:none;width:100%;background:none;border:1px solid #d1d5db;border-radius:8px;padding:8px;font-size:12px;color:#6b7280;cursor:pointer;margin-bottom:8px;">🔑 APIキーを変更する</button>
 <input type="file" id="scoreImageInput" accept="image/*" style="display:none;" onchange="processScoreImage(this)">
 <button type="button" onclick="document.getElementById('scoreImageInput').click()" class="btn btnp" style="background:linear-gradient(135deg,#1a5c2e,#2d8a4e);">📷 写真を選択して取り込む</button>
 <div id="imageProcessing" style="display:none;text-align:center;padding:16px;color:#6b7280;font-size:13px;">
@@ -1082,11 +1084,12 @@ function saveApiKey(){
   if(!key){alert('APIキーを入力してください');return;}
   localStorage.setItem('sf_api_key',key);
   document.getElementById('apiKeyInput').value='';
-  document.getElementById('apiKeyStatus').textContent='✅ APIキーを保存しました';
+  document.getElementById('apiKeyStatus').textContent='✅ 保存しました';
   document.getElementById('apiKeyStatus').style.color='#1a5c2e';
   setTimeout(function(){
     document.getElementById('apiKeyArea').style.display='none';
-  },1500);
+    document.getElementById('apiKeyToggleBtn').style.display='block';
+  },1000);
 }
 
 function getApiKey(){
@@ -1096,11 +1099,28 @@ function getApiKey(){
 function initApiKeyArea(){
   var key=getApiKey();
   var area=document.getElementById('apiKeyArea');
+  var toggleBtn=document.getElementById('apiKeyToggleBtn');
   var status=document.getElementById('apiKeyStatus');
   if(key){
     if(area)area.style.display='none';
+    if(toggleBtn)toggleBtn.style.display='block';
+    if(status)status.textContent='設定済み';
   } else {
-    if(status)status.textContent='APIキーが未設定です。入力して保存してください。';
+    if(area)area.style.display='block';
+    if(toggleBtn)toggleBtn.style.display='none';
+    if(status)status.textContent='APIキーを入力して保存してください';
+    if(status)status.style.color='#dc2626';
+  }
+}
+function toggleApiKeyArea(){
+  var area=document.getElementById('apiKeyArea');
+  var toggleBtn=document.getElementById('apiKeyToggleBtn');
+  if(area.style.display==='none'){
+    area.style.display='block';
+    toggleBtn.style.display='none';
+  } else {
+    area.style.display='none';
+    toggleBtn.style.display='block';
   }
 }
 
