@@ -114,6 +114,28 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <button type="button" onclick="showCourseDiv()" class="btn btng" style="margin-bottom:14px;">⛳ コース登録・管理</button>
 
 <div class="card">
+<div class="ctit">📸 スコアカード写真から取り込む</div>
+<div style="font-size:11px;color:#6b7280;margin-bottom:8px;">写真を選択するとAIが自動でスコアを読み取ります。</div>
+<div id="apiKeyArea" style="margin-bottom:8px;">
+<div style="font-size:11px;color:#6b7280;margin-bottom:4px;">APIキー（初回のみ入力）</div>
+<div style="display:flex;gap:6px;">
+<input id="apiKeyInput" type="password" placeholder="sk-ant-api..." style="flex:1;padding:10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;background:#fff;">
+<button type="button" onclick="saveApiKey()" style="background:#1a5c2e;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;white-space:nowrap;">保存</button>
+</div>
+<div id="apiKeyStatus" style="font-size:11px;margin-top:4px;color:#6b7280;"></div>
+</div>
+<input type="file" id="scoreImageInput" accept="image/*" style="display:none;" onchange="processScoreImage(this)">
+<button type="button" onclick="document.getElementById('scoreImageInput').click()" class="btn btnp" style="background:linear-gradient(135deg,#1a5c2e,#2d8a4e);">📷 写真を選択して取り込む</button>
+<div id="imageProcessing" style="display:none;text-align:center;padding:16px;color:#6b7280;font-size:13px;">
+<div style="margin-bottom:8px;">⏳ AIが読み取り中...</div>
+<div style="width:100%;height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;">
+<div id="progressBar" style="width:0%;height:100%;background:#1a5c2e;border-radius:2px;transition:width 0.5s;"></div>
+</div>
+</div>
+<div id="imageResult" style="display:none;"></div>
+</div>
+
+<div class="card">
 <div class="ctit">📥 AIテキストを貼り付け</div>
 <div style="font-size:11px;color:#6b7280;margin-bottom:6px;">AIでテキスト化したスコアを貼り付けて「取り込む」を押すと全データが自動入力されます。詳しくは「❓使い方」タブへ。</div>
 <div style="display:flex;gap:8px;align-items:center;">
@@ -135,7 +157,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <button type="button" onclick="cancelImportedCourse()" style="flex:1;background:#fff;border:2px solid #6b7280;color:#374151;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;">戻る</button>
 </div>
 </div>
-</div>
+</div><!-- AIテキストカード終 -->
 
 <div class="card">
 <div class="ctit">ゴルフ場名</div>
@@ -1054,6 +1076,102 @@ function updateApp(){
 
 // ===== 初期化 =====
 
+// ===== 写真取り込み機能 =====
+function saveApiKey(){
+  var key=document.getElementById('apiKeyInput').value.trim();
+  if(!key){alert('APIキーを入力してください');return;}
+  localStorage.setItem('sf_api_key',key);
+  document.getElementById('apiKeyInput').value='';
+  document.getElementById('apiKeyStatus').textContent='✅ APIキーを保存しました';
+  document.getElementById('apiKeyStatus').style.color='#1a5c2e';
+  setTimeout(function(){
+    document.getElementById('apiKeyArea').style.display='none';
+  },1500);
+}
+
+function getApiKey(){
+  return localStorage.getItem('sf_api_key')||'';
+}
+
+function initApiKeyArea(){
+  var key=getApiKey();
+  var area=document.getElementById('apiKeyArea');
+  var status=document.getElementById('apiKeyStatus');
+  if(key){
+    if(area)area.style.display='none';
+  } else {
+    if(status)status.textContent='APIキーが未設定です。入力して保存してください。';
+  }
+}
+
+async function processScoreImage(input){
+  var file=input.files[0];
+  if(!file)return;
+  var apiKey=getApiKey();
+  if(!apiKey){
+    document.getElementById('apiKeyArea').style.display='block';
+    alert('APIキーを設定してください');
+    return;
+  }
+  var processing=document.getElementById('imageProcessing');
+  var progressBar=document.getElementById('progressBar');
+  var resultDiv=document.getElementById('imageResult');
+  processing.style.display='block';
+  resultDiv.style.display='none';
+  progressBar.style.width='20%';
+  try{
+    // 画像をbase64に変換
+    var base64=await new Promise(function(resolve,reject){
+      var reader=new FileReader();
+      reader.onload=function(e){resolve(e.target.result.split(',')[1]);};
+      reader.onerror=reject;
+      reader.readAsDataURL(file);
+    });
+    progressBar.style.width='50%';
+    var mediaType=file.type||'image/jpeg';
+    var prompt='このゴルフスコアカードの画像を読み取り、以下の形式のみで出力してください。説明文は不要です。\n\nGOLF=ゴルフ場名\nP1=氏名,合計,1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nP2=氏名,合計,1H~18H\nP3=氏名,合計,1H~18H\nP4=氏名,合計,1H~18H\nPAR=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nHDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\n\nプレーヤーが4人未満の場合はいる人数分だけ出力。スコアが読み取れないホールは0を入力。';
+    var response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:1000,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
+            {type:'text',text:prompt}
+          ]
+        }]
+      })
+    });
+    progressBar.style.width='80%';
+    if(!response.ok){
+      var err=await response.json();
+      throw new Error(err.error&&err.error.message?err.error.message:'APIエラー');
+    }
+    var data=await response.json();
+    var text=data.content[0].text;
+    progressBar.style.width='100%';
+    // テキスト欄に入れて自動取り込み
+    document.getElementById('rawText').value=text;
+    processing.style.display='none';
+    resultDiv.style.display='block';
+    resultDiv.innerHTML='<div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:10px;font-size:12px;color:#065f46;margin-top:8px;font-weight:700;">✅ 読み取り完了！自動取り込みします...</div>';
+    // 自動でparseRawTextを実行
+    setTimeout(function(){parseRawText();},500);
+  }catch(e){
+    processing.style.display='none';
+    resultDiv.style.display='block';
+    resultDiv.innerHTML='<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;font-size:12px;color:#dc2626;margin-top:8px;">❌ エラー: '+e.message+'</div>';
+  }
+  input.value='';
+}
+
 // ===== コース管理 =====
 function getCourses(){
   try{return JSON.parse(localStorage.getItem('sf_courses')||'[]');}catch(e){return [];}
@@ -1305,6 +1423,7 @@ function loadBothCourses(outId,inId){
 }
 buildPlayers();
 updHC();
+initApiKeyArea();
 
 // 入力後に次のフィールドへ自動移動
 function autoNext(currentId){
