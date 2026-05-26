@@ -128,8 +128,12 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 
 <div class="card">
-<div class="ctit">📥 AIテキストを貼り付け</div>
-<div style="font-size:11px;color:#6b7280;margin-bottom:6px;">AIでテキスト化したスコアを貼り付けて「取り込む」を押すと全データが自動入力されます。詳しくは「❓使い方」タブへ。</div>
+<div onclick="toggleTextInput()" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+<div class="ctit" style="margin-bottom:0;">📥 AIテキストを貼り付け（手動）</div>
+<div id="textInputArrow" style="font-size:18px;color:#6b7280;">▼</div>
+</div>
+<div id="textInputArea" style="display:none;margin-top:10px;">
+<div style="font-size:11px;color:#6b7280;margin-bottom:6px;">写真取り込みがうまくいかない時に使用。AIでテキスト化したスコアを貼り付けて「取り込む」を押してください。</div>
 <div style="display:flex;gap:8px;align-items:center;">
 <textarea id="rawText" placeholder="" style="flex:1;height:44px;border:1.5px solid #d1d5db;border-radius:8px;padding:10px;font-family:monospace;font-size:16px;background:#fff;resize:none;line-height:1.2;overflow:hidden"></textarea>
 <button onclick="parseRawText()" class="btn btng" style="width:80px;padding:10px;font-size:12px;flex-shrink:0;height:44px;">✓取込</button>
@@ -147,6 +151,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div style="display:flex;gap:8px;">
 <button type="button" onclick="saveImportedCourse()" style="flex:2;background:#1a5c2e;color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;">💾 登録する</button>
 <button type="button" onclick="cancelImportedCourse()" style="flex:1;background:#fff;border:2px solid #6b7280;color:#374151;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;">戻る</button>
+</div>
 </div>
 </div>
 </div><!-- AIテキストカード終 -->
@@ -282,68 +287,28 @@ AIテキスト取り込み成功後に「⛳ このコースのPar・HDPを登�
 <!-- STEP2 -->
 <div style="background:linear-gradient(135deg,#1a5c2e,#2d8a4e);border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:0">
 <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#c9a84c;line-height:1">2</div>
-<div><div style="color:#fff;font-size:14px;font-weight:900">スコア画像をAIでテキスト化する</div><div style="color:#a0c4a8;font-size:10px;margin-top:2px">GDO・GORA等のスコア画像を使用</div></div>
+<div><div style="color:#fff;font-size:14px;font-weight:900">スコアカードの写真を取り込む</div><div style="color:#a0c4a8;font-size:10px;margin-top:2px">一番簡単な方法</div></div>
 </div>
 <div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:14px;">
-<div style="font-size:12px;line-height:1.8;color:#374151;margin-bottom:10px;">ラウンドアプリのスコア画像を保存したら、AIアプリに送ってテキスト化します。ChatGPT・Claude・Copilotどれでもできます。</div>
 <div style="display:flex;flex-direction:column;gap:10px;">
 <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px dashed #e5e7eb;">
 <div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
-<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">AIアプリを開いてスコア画像を添付</div><div style="font-size:12px;color:#374151;line-height:1.7;">ChatGPT・Claude・Copilotのどれかを開き、入力欄の📎または＋から画像を添付します。</div></div>
-</div>
-<div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px dashed #e5e7eb;">
-<div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
-<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">以下の指示文をコピーして送信</div>
-<div style="background:#f8faff;border:2px solid #dbeafe;border-radius:10px;padding:10px;margin-top:6px;">
-<div style="font-size:10px;font-weight:700;color:#1e40af;margin-bottom:5px;">📋 長押しでコピー → AIに貼り付けて送信</div>
-<div style="font-size:11px;line-height:1.8;color:#1e3a5f;font-family:monospace;word-break:break-all;" id="guidePrompt">スコアカードの画像を読み取り、以下の形式のみで出力。説明文不要。
-
-GOLF=ゴルフ場名
-P1=氏名,合計,1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H
-P2=氏名,合計,1H〜18H
-P3=氏名,合計,1H〜18H
-P4=氏名,合計,1H〜18H
-PAR=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H
-HDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H</div>
-</div>
-</div>
+<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">🏠トップページの「📷 写真を選択して取り込む」をタップ</div><div style="font-size:12px;color:#374151;line-height:1.7;">スコアカードの写真を選択します。</div></div>
 </div>
 <div style="display:flex;gap:10px;align-items:flex-start;">
-<div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
-<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">AIの返答を長押し→全選択→コピー</div><div style="font-size:12px;color:#374151;line-height:1.7;">GOLF=〜から始まるテキストが返ってきます。全部コピーしてください。</div></div>
+<div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">AIが自動で読み取り → スコアページへ</div><div style="font-size:12px;color:#374151;line-height:1.7;">数秒で自動入力されます。Par・HDPが読み取れない場合はコース登録から読み込んでください。</div></div>
 </div>
-<div style="background:#fffbeb;border-left:4px solid #c9a84c;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#92400e;margin-top:8px;line-height:1.8;">
-💡 <b>2回目以降は指示文不要！</b><br>
-最初に指示文を送ったチャットを開いて<b>画像を添付するだけ</b>で同じ形式で出力されます。
 </div>
+<div style="background:#fffbeb;border-left:4px solid #c9a84c;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#92400e;margin-top:10px;line-height:1.8;">
+💡 <b>写真がうまく読み取れない場合は手動入力を使用</b><br>
+「📥 AIテキストを貼り付け（手動）」をタップして展開。ChatGPT・Claude・CopilotでAIテキスト化してから貼り付けてください。
 </div>
 </div>
 
 <!-- STEP3 -->
 <div style="background:linear-gradient(135deg,#1a5c2e,#2d8a4e);border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;">
 <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#c9a84c;line-height:1">3</div>
-<div><div style="color:#fff;font-size:14px;font-weight:900">テキストをアプリに貼り付ける</div><div style="color:#a0c4a8;font-size:10px;margin-top:2px">🏠トップページの貼り付け欄を使います</div></div>
-</div>
-<div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:14px;">
-<div style="display:flex;flex-direction:column;gap:10px;">
-<div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px dashed #e5e7eb;">
-<div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
-<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">🏠トップページを開く</div><div style="font-size:12px;color:#374151;line-height:1.7;">「📥 AIテキストを貼り付け」欄を長押し→ペーストします。</div></div>
-</div>
-<div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px dashed #e5e7eb;">
-<div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
-<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">「✓取込」をタップ</div><div style="font-size:12px;color:#374151;line-height:1.7;">取り込み成功！と表示されれば自動入力完了です。</div></div>
-</div>
-<div style="display:flex;gap:10px;align-items:flex-start;">
-<div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
-<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">「📝 スコアを見る →」をタップ</div><div style="font-size:12px;color:#374151;line-height:1.7;">Par・HDP・スコアが自動入力されたスコアページへ移動します。</div></div>
-</div>
-</div>
-</div>
-
-<!-- STEP4 -->
-<div style="background:linear-gradient(135deg,#1a5c2e,#2d8a4e);border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;">
-<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#c9a84c;line-height:1">4</div>
 <div><div style="color:#fff;font-size:14px;font-weight:900">スコアを確認して結果を見る</div><div style="color:#a0c4a8;font-size:10px;margin-top:2px">自動入力後は確認するだけでOK</div></div>
 </div>
 <div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:14px;">
@@ -1067,6 +1032,18 @@ function updateApp(){
 }
 
 // ===== 初期化 =====
+
+function toggleTextInput(){
+  var area=document.getElementById('textInputArea');
+  var arrow=document.getElementById('textInputArrow');
+  if(area.style.display==='none'){
+    area.style.display='block';
+    arrow.textContent='▲';
+  } else {
+    area.style.display='none';
+    arrow.textContent='▼';
+  }
+}
 
 // ===== 写真取り込み機能 =====
 function saveApiKey(){
