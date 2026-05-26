@@ -951,12 +951,26 @@ function applyToPlayers(){
   updHC();
 }
 
+function getSelectedCourse(){
+  try{
+    var s=localStorage.getItem('sf_selected');
+    return s?JSON.parse(s):null;
+  }catch(e){return null;}
+}
+
 function applyToHoles(){
   if(!importedData||importedData._appliedToHoles)return;
-  if(importedData.holeInfo){
+  // コース登録データがない場合のみPar・HDPをimportedDataから適用
+  var selectedCourse=getSelectedCourse();
+  if(!selectedCourse&&importedData.holeInfo){
     importedData.holeInfo.forEach(h=>{
       if($('par_'+h.hole)&&h.par)$('par_'+h.hole).value=h.par;
       if($('hdp_'+h.hole)&&h.hdp)$('hdp_'+h.hole).value=h.hdp;
+    });
+  } else if(importedData.holeInfo){
+    // Par だけ反映（HDPはコース登録データを使用）
+    importedData.holeInfo.forEach(h=>{
+      if($('par_'+h.hole)&&h.par)$('par_'+h.hole).value=h.par;
     });
   }
   importedData.players.slice(0,4).forEach((p,i)=>{
