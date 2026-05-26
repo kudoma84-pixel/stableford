@@ -1127,12 +1127,6 @@ function toggleApiKeyArea(){
 async function processScoreImage(input){
   var file=input.files[0];
   if(!file)return;
-  var apiKey=getApiKey();
-  if(!apiKey){
-    document.getElementById('apiKeyArea').style.display='block';
-    alert('APIキーを設定してください');
-    return;
-  }
   var processing=document.getElementById('imageProcessing');
   var progressBar=document.getElementById('progressBar');
   var resultDiv=document.getElementById('imageResult');
