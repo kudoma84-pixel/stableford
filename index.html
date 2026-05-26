@@ -116,7 +116,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div class="card">
 <div class="ctit">📸 スコアカード写真から取り込む</div>
 <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">写真を選択するとAIが自動でスコアを読み取ります。</div>
-<div id="apiKeyArea" style="margin-bottom:8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;">
+<div id="apiKeyArea" style="display:none;margin-bottom:8px;">
 <div style="font-size:12px;font-weight:700;color:#1a5c2e;margin-bottom:6px;">🔑 APIキー設定</div>
 <div style="font-size:11px;color:#6b7280;margin-bottom:6px;" id="apiKeyStatus"></div>
 <div style="display:flex;gap:6px;">
@@ -1150,12 +1150,10 @@ async function processScoreImage(input){
     progressBar.style.width='50%';
     var mediaType=file.type||'image/jpeg';
     var prompt='このゴルフスコアカードの画像を読み取り、以下の形式のみで出力してください。説明文は不要です。\n\nGOLF=ゴルフ場名\nP1=氏名,合計,1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nP2=氏名,合計,1H~18H\nP3=氏名,合計,1H~18H\nP4=氏名,合計,1H~18H\nPAR=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nHDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\n\nプレーヤーが4人未満の場合はいる人数分だけ出力。スコアが読み取れないホールは0を入力。';
-    var response=await fetch('https://api.anthropic.com/v1/messages',{
+    var response=await fetch('/api/claude',{
       method:'POST',
       headers:{
-        'Content-Type':'application/json',
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01'
+        'Content-Type':'application/json'
       },
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
