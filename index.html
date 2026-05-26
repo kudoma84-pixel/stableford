@@ -640,6 +640,9 @@ function doResetAll(){
   // 写真取り込み結果もクリア
   if($('imageResult')){$('imageResult').style.display='none';$('imageResult').innerHTML='';}
   if($('imageProcessing'))$('imageProcessing').style.display='none';
+  // テキスト入力エリアを閉じる
+  if($('textInputArea'))$('textInputArea').style.display='none';
+  if($('textInputArrow'))$('textInputArrow').textContent='▼';
   // プレーヤー入力クリア
   [0,1,2,3].forEach(i=>{
     if($('nm'+i))$('nm'+i).value='';
@@ -1161,7 +1164,15 @@ async function processScoreImage(input){
     resultDiv.style.display='none';
     // 自動でparseRawTextを実行
     setTimeout(function(){
+      // テキスト入力エリアを開く（コース登録欄を表示するため）
+      var textArea=$('textInputArea');
+      var arrow=$('textInputArrow');
+      if(textArea)textArea.style.display='block';
+      if(arrow)arrow.textContent='▲';
       parseRawText();
+      // 画像取り込み時はocrOkを非表示
+      var ok=$('ocrOk');
+      if(ok)ok.classList.add('hidden');
       resultDiv.style.display='none';
     },500);
   }catch(e){
