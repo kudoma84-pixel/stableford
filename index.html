@@ -107,11 +107,10 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <button onclick="goStep4()" class="tab" id="t4">🏆結果</button>
 <button onclick="showHistory()" class="tab" id="t5">📚履歴</button>
 <button onclick="show(6)" class="tab" id="t6">❓使い方</button>
+<button onclick="updateApp()" class="tab" id="t8" style="font-size:16px;flex:0 0 44px;">🔃</button>
 </div>
 <div id="s1">
-<button type="button" onclick="resetAll()" class="btn btnp" style="margin-bottom:8px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
-<button type="button" onclick="updateApp()" class="btn btno" style="margin-bottom:14px;font-size:13px;">🔃 アプリを最新版に更新する</button>
-<button type="button" onclick="showCourseDiv()" class="btn btng" style="margin-bottom:14px;">⛳ コース登録・管理</button>
+<button type="button" onclick="resetAll()" class="btn btnp" style="margin-bottom:14px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
 
 <div class="card">
 <div class="ctit">📸 スコアカード写真から取り込む</div>
@@ -155,6 +154,8 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 </div>
 </div><!-- AIテキストカード終 -->
+
+<button type="button" onclick="showCourseDiv()" class="btn btng" style="margin-bottom:14px;">⛳ コース登録・管理</button>
 
 <div class="card">
 <div class="ctit">ゴルフ場名</div>
@@ -261,7 +262,29 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <!-- STEP1 -->
 <div style="background:linear-gradient(135deg,#1a5c2e,#2d8a4e);border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:0">
 <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#c9a84c;line-height:1">1</div>
-<div><div style="color:#fff;font-size:14px;font-weight:900">コースを登録する（初回のみ）</div><div style="color:#a0c4a8;font-size:10px;margin-top:2px">一度登録すれば次回から自動入力</div></div>
+<div><div style="color:#fff;font-size:14px;font-weight:900">スコアカードの写真を取り込む</div><div style="color:#a0c4a8;font-size:10px;margin-top:2px">一番簡単な方法</div></div>
+</div>
+<div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:14px;">
+<div style="display:flex;flex-direction:column;gap:10px;">
+<div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px dashed #e5e7eb;">
+<div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">🏠トップページの「📷 写真を選択して取り込む」をタップ</div><div style="font-size:12px;color:#374151;line-height:1.7;">スコアカードの写真を選択します。</div></div>
+</div>
+<div style="display:flex;gap:10px;align-items:flex-start;">
+<div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">AIが自動で読み取り → スコアページへ</div><div style="font-size:12px;color:#374151;line-height:1.7;">数秒で自動入力されます。Par・HDPが読み取れない場合はコース登録から読み込んでください。</div></div>
+</div>
+</div>
+<div style="background:#fffbeb;border-left:4px solid #c9a84c;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#92400e;margin-top:10px;line-height:1.8;">
+💡 <b>写真がうまく読み取れない場合は手動入力を使用</b><br>
+「📥 AIテキストを貼り付け（手動）」をタップして展開。ChatGPT・Claude・CopilotでAIテキスト化してから貼り付けてください。
+</div>
+</div>
+
+<!-- STEP2 -->
+<div style="background:linear-gradient(135deg,#1a5c2e,#2d8a4e);border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:0">
+<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#c9a84c;line-height:1">2</div>
+<div><div style="color:#fff;font-size:14px;font-weight:900">手入力でコースを登録する</div><div style="color:#a0c4a8;font-size:10px;margin-top:2px">一度登録すれば次回から自動入力</div></div>
 </div>
 <div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:14px;">
 <div style="display:flex;flex-direction:column;gap:10px;">
@@ -279,30 +302,12 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 </div>
 <div style="background:#fffbeb;border-left:4px solid #c9a84c;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#92400e;margin-top:10px;line-height:1.8;">
-💡 <b>テキスト取り込み後にも登録できます！</b><br>
-AIテキスト取り込み成功後に「⛳ このコースのPar・HDPを登録する」ボタンが表示されます。前半・後半のコース名を入力するだけで自動登録されます。
+💡 <b>写真取り込み後にも自動登録できます！</b><br>
+写真取り込み成功後にコース名入力欄が自動表示されます。前半・後半のコース名を入力するだけで自動登録されます。
 </div>
-</div>
-
-<!-- STEP2 -->
-<div style="background:linear-gradient(135deg,#1a5c2e,#2d8a4e);border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:0">
-<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#c9a84c;line-height:1">2</div>
-<div><div style="color:#fff;font-size:14px;font-weight:900">スコアカードの写真を取り込む</div><div style="color:#a0c4a8;font-size:10px;margin-top:2px">一番簡単な方法</div></div>
-</div>
-<div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:14px;">
-<div style="display:flex;flex-direction:column;gap:10px;">
-<div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px dashed #e5e7eb;">
-<div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
-<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">🏠トップページの「📷 写真を選択して取り込む」をタップ</div><div style="font-size:12px;color:#374151;line-height:1.7;">スコアカードの写真を選択します。</div></div>
-</div>
-<div style="display:flex;gap:10px;align-items:flex-start;">
-<div style="width:26px;height:26px;border-radius:50%;background:#e8f5ed;color:#1a5c2e;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
-<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">AIが自動で読み取り → スコアページへ</div><div style="font-size:12px;color:#374151;line-height:1.7;">数秒で自動入力されます。Par・HDPが読み取れない場合はコース登録から読み込んでください。</div></div>
-</div>
-</div>
-<div style="background:#fffbeb;border-left:4px solid #c9a84c;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#92400e;margin-top:10px;line-height:1.8;">
-💡 <b>写真がうまく読み取れない場合は手動入力を使用</b><br>
-「📥 AIテキストを貼り付け（手動）」をタップして展開。ChatGPT・Claude・CopilotでAIテキスト化してから貼り付けてください。
+<div style="background:#e8f5ed;border-left:4px solid #1a5c2e;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#1a5c2e;font-weight:700;margin-top:8px;line-height:1.8;">
+📥 <b>登録済みコースの呼び出し方</b><br>
+🏠トップ →「⛳ コース登録・管理」をタップ → 登録済みコース一覧から「📥 前半・後半まとめて読み込む」をタップ → スコアページのPar・HDPが自動入力されます。
 </div>
 </div>
 
@@ -498,6 +503,7 @@ function refreshAllHdpMarks(){
 }
 
 function updPt(hn,pi){
+  calcHC(); // 最新の差ハンデで計算
   const par=parseInt($('par_'+hn)?.value);
   const hdp=parseInt($('hdp_'+hn)?.value);
   const inp=$(`s_${hn}_${pi}`);
@@ -631,6 +637,9 @@ function doResetAll(){
   if($('ocrErr'))$('ocrErr').classList.add('hidden');
   if($('registerCourseBtn'))$('registerCourseBtn').style.display='none';
   if($('courseNameInputArea'))$('courseNameInputArea').style.display='none';
+  // 写真取り込み結果もクリア
+  if($('imageResult')){$('imageResult').style.display='none';$('imageResult').innerHTML='';}
+  if($('imageProcessing'))$('imageProcessing').style.display='none';
   // プレーヤー入力クリア
   [0,1,2,3].forEach(i=>{
     if($('nm'+i))$('nm'+i).value='';
@@ -956,6 +965,16 @@ function applyToHoles(){
     });
   });
   importedData._appliedToHoles=true;
+  // まずグロス合計をsc欄に反映してから差ハンデを計算
+  [0,1,2,3].forEach(i=>{
+    let gross=0;
+    for(let h=1;h<=18;h++){
+      const v=parseInt($(`s_${h}_${i}`)?.value||'0');
+      if(v>0)gross+=v;
+    }
+    if(gross>0&&$('sc'+i))$('sc'+i).value=gross;
+  });
+  calcHC();
   for(let h=1;h<=18;h++){
     refreshHdpMarks(h);
     updAllPt(h);
@@ -1139,10 +1158,12 @@ async function processScoreImage(input){
     // テキスト欄に入れて自動取り込み
     document.getElementById('rawText').value=text;
     processing.style.display='none';
-    resultDiv.style.display='block';
-    resultDiv.innerHTML='<div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:10px;font-size:12px;color:#065f46;margin-top:8px;font-weight:700;">✅ 読み取り完了！自動取り込みします...</div>';
+    resultDiv.style.display='none';
     // 自動でparseRawTextを実行
-    setTimeout(function(){parseRawText();},500);
+    setTimeout(function(){
+      parseRawText();
+      resultDiv.style.display='none';
+    },500);
   }catch(e){
     processing.style.display='none';
     resultDiv.style.display='block';
