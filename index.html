@@ -283,6 +283,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div id="dt" style="max-width:100%;overflow-x:auto"></div>
 </div>
 <div style="clear:both;display:block;margin-top:20px;margin-bottom:40px">
+<button type="button" onclick="shareResult()" class="btn" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#06b6d4,#0284c7);color:#fff;font-weight:900;">📤 結果を画像で共有</button>
 <button type="button" onclick="saveRound()" class="btn btng" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">💾 このラウンドを保存</button>
 <button type="button" onclick="show(3)" class="btn" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5;background:transparent;border:2px solid #fff;color:#fff;">← スコア修正</button>
 <button type="button" onclick="resetAll()" class="btn btnp" style="display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
@@ -648,8 +649,10 @@ function getHoleData(){
 
 function renderResults(){
   const holes=getHoleData();
+  // 後半ハーフのホール番号（スタートホールに応じて）
+  const backNine=_startHole===1?[10,11,12,13,14,15,16,17,18]:[1,2,3,4,5,6,7,8,9];
   const res=[0,1,2,3].map(i=>{
-    let tot=0,grossTot=0,netTot=0;
+    let tot=0,grossTot=0,netTot=0,backTot=0;
     const hp=holes.map(h=>{
       const inp=$(`s_${h.hole}_${i}`);
       const g=parseInt(inp?.value);
@@ -657,12 +660,17 @@ function renderResults(){
       if(!isNaN(g)&&g>0&&h.par>0){
         const p=calcPt(g,h.par,hs);
         tot+=p;grossTot+=g;netTot+=(g-hs);
+        if(backNine.includes(h.hole))backTot+=p;
         return{...h,g,hs,net:g-hs,p};
       }
       return{...h,g:null,hs,net:null,p:null};
     });
-    return{name:getPlayerName(i),col:COLS[i],hc:HC[i],tot,grossTot,netTot,hp};
-  }).sort((a,b)=>b.tot-a.tot);
+    return{name:getPlayerName(i),col:COLS[i],hc:HC[i],tot,grossTot,netTot,backTot,hp};
+  }).filter(r=>r.name!=='').sort((a,b)=>{
+    if(b.tot!==a.tot)return b.tot-a.tot;         // 合計ポイント
+    if(b.backTot!==a.backTot)return b.backTot-a.backTot; // 後半ポイント
+    return a.grossTot-b.grossTot;                 // グロス（少ない方が上位）
+  });
 
   const rl=['g','s','b',''],md=['🥇','🥈','🥉','4'];
   $('rc').innerHTML=`<div class="card">${courseName?`<div class="cname">⛳ ${courseName}</div>`:''}<div class="ctit">🏆 最終結果</div>${res.map((r,i)=>`<div class="rrank"><div class="rnum ${rl[i]}">${md[i]}</div><div style="width:8px;height:38px;border-radius:4px;background:${r.col}"></div><div style="flex:1"><div class="rname">${r.name}</div><div class="rdet">グロス${r.grossTot} / ネット${r.netTot} / 差HC${r.hc}</div></div><div class="rpt">${r.tot}<span>pt</span></div></div>`).join('')}</div>`;
@@ -1592,6 +1600,199 @@ function nextHole(){
   var rounds=getRoundHoles();
   var idx=getRoundIndex(_currentHole);
   if(idx<17)showHole(rounds[idx+1]);
+}
+
+// ===== Canvas共有 =====
+async function shareResult(){
+  try{
+    const canvas=document.createElement('canvas');
+    const dpr=window.devicePixelRatio||1;
+    const W=720,PADDING=32;
+    canvas.width=W*dpr;
+    const ctx=canvas.getContext('2d');
+    ctx.scale(dpr,dpr);
+
+    // データ収集
+    const holes=getHoleData();
+    const backNine=_startHole===1?[10,11,12,13,14,15,16,17,18]:[1,2,3,4,5,6,7,8,9];
+    const players=[0,1,2,3].map(i=>{
+      let tot=0,grossTot=0,netTot=0,backTot=0;
+      const hp=holes.map(h=>{
+        const inp=document.getElementById('s_'+h.hole+'_'+i);
+        const g=parseInt(inp?.value);
+        const hs=getHS(HC[i],h.hdp);
+        if(!isNaN(g)&&g>0&&h.par>0){
+          const p=calcPt(g,h.par,hs);
+          tot+=p;grossTot+=g;netTot+=(g-hs);
+          if(backNine.includes(h.hole))backTot+=p;
+          return{...h,g,hs,net:g-hs,p};
+        }
+        return{...h,g:null,hs,net:null,p:null};
+      });
+      return{name:getPlayerName(i),col:COLS[i],hc:HC[i],tot,grossTot,netTot,backTot,hp};
+    }).filter(r=>r.name!=='').sort((a,b)=>{
+      if(b.tot!==a.tot)return b.tot-a.tot;
+      if(b.backTot!==a.backTot)return b.backTot-a.backTot;
+      return a.grossTot-b.grossTot;
+    });
+
+    // 高さ計算
+    const headerH=120,rankH=players.length*70,tableRowH=28;
+    const tableH=40+(holes.filter(h=>h.par>0).length+1)*tableRowH;
+    const totalH=headerH+rankH+tableH+80;
+    canvas.height=totalH*dpr;
+    canvas.width=W*dpr;
+    ctx.scale(dpr,dpr);
+
+    // 背景
+    ctx.fillStyle='#f0fdf4';
+    ctx.fillRect(0,0,W,totalH);
+
+    // ヘッダー
+    const hg=ctx.createLinearGradient(0,0,W,0);
+    hg.addColorStop(0,'#1a5c2e');
+    hg.addColorStop(1,'#2d8a4e');
+    ctx.fillStyle=hg;
+    ctx.fillRect(0,0,W,headerH);
+    ctx.fillStyle='#c9a84c';
+    ctx.font='bold 14px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('⛳ STABLEFORD',W/2,30);
+    ctx.fillStyle='#fff';
+    ctx.font='bold 22px sans-serif';
+    ctx.fillText(courseName||'スコア結果',W/2,60);
+    ctx.fillStyle='rgba(255,255,255,0.7)';
+    ctx.font='14px sans-serif';
+    ctx.fillText(new Date().toLocaleDateString('ja-JP'),W/2,85);
+
+    // 順位カード
+    const medals=['🥇','🥈','🥉','　'];
+    let y=headerH+10;
+    players.forEach((p,idx)=>{
+      ctx.fillStyle='#fff';
+      roundRect(ctx,PADDING,y,W-PADDING*2,60,12);
+      ctx.fill();
+      // カラーバー
+      ctx.fillStyle=p.col;
+      ctx.fillRect(PADDING,y,6,60);
+      // メダル
+      ctx.font='28px sans-serif';
+      ctx.textAlign='left';
+      ctx.fillText(medals[idx],PADDING+16,y+40);
+      // 名前
+      ctx.fillStyle='#1a5c2e';
+      ctx.font='bold 18px sans-serif';
+      ctx.fillText(p.name,PADDING+56,y+28);
+      // 詳細
+      ctx.fillStyle='#6b7280';
+      ctx.font='12px sans-serif';
+      ctx.fillText('グロス'+p.grossTot+' / 差HC'+p.hc,PADDING+56,y+48);
+      // ポイント
+      ctx.fillStyle='#1a5c2e';
+      ctx.font='bold 32px sans-serif';
+      ctx.textAlign='right';
+      ctx.fillText(p.tot+'pt',W-PADDING,y+42);
+      y+=70;
+    });
+
+    // スコアカード
+    y+=10;
+    const colW=(W-PADDING*2)/(3+players.length);
+    // ヘッダー行
+    ctx.fillStyle='#1a5c2e';
+    ctx.fillRect(PADDING,y,W-PADDING*2,36);
+    ctx.fillStyle='#fff';
+    ctx.font='bold 12px sans-serif';
+    ctx.textAlign='center';
+    ['H','Par','HDP',...players.map(p=>p.name.substring(0,3))].forEach((h,i)=>{
+      ctx.fillText(h,PADDING+colW*i+colW/2,y+22);
+    });
+    y+=36;
+
+    // データ行
+    const ptColors={4:'#fef3c7',3:'#d1fae5',2:'#dbeafe',1:'#f3f4f6',0:'#fee2e2'};
+    holes.filter(h=>h.par>0).forEach((h,idx)=>{
+      ctx.fillStyle=idx%2===0?'#fff':'#f9fafb';
+      ctx.fillRect(PADDING,y,W-PADDING*2,tableRowH);
+      ctx.fillStyle='#1a5c2e';
+      ctx.font='bold 12px sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText(h.hole,PADDING+colW*0+colW/2,y+18);
+      ctx.fillStyle='#374151';
+      ctx.font='12px sans-serif';
+      ctx.fillText(h.par||'-',PADDING+colW*1+colW/2,y+18);
+      ctx.fillText(h.hdp||'-',PADDING+colW*2+colW/2,y+18);
+      players.forEach((p,pi)=>{
+        const hp=p.hp.find(ph=>ph.hole===h.hole);
+        if(hp&&hp.g){
+          const pt=hp.p;
+          ctx.fillStyle=ptColors[pt]||'#f3f4f6';
+          const cx=PADDING+colW*(3+pi);
+          roundRect(ctx,cx+2,y+2,colW-4,tableRowH-4,4);
+          ctx.fill();
+          ctx.fillStyle='#374151';
+          ctx.font='bold 12px sans-serif';
+          ctx.textAlign='center';
+          ctx.fillText(hp.g,cx+colW/2,y+18);
+        } else {
+          ctx.fillStyle='#ccc';
+          ctx.font='12px sans-serif';
+          ctx.textAlign='center';
+          ctx.fillText('-',PADDING+colW*(3+pi)+colW/2,y+18);
+        }
+      });
+      y+=tableRowH;
+    });
+
+    // 合計行
+    ctx.fillStyle='#e8f5ed';
+    ctx.fillRect(PADDING,y,W-PADDING*2,36);
+    ctx.fillStyle='#1a5c2e';
+    ctx.font='bold 13px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('合計pt',PADDING+colW*1.5,y+23);
+    players.forEach((p,pi)=>{
+      ctx.font='bold 16px sans-serif';
+      ctx.fillText(p.tot,PADDING+colW*(3+pi)+colW/2,y+23);
+    });
+
+    // 画像として共有
+    canvas.toBlob(async function(blob){
+      const file=new File([blob],'stableford_result.png',{type:'image/png'});
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+        try{
+          await navigator.share({files:[file],title:'STABLEFORDスコア',text:courseName||'スコア結果'});
+        }catch(e){
+          if(e.name!=='AbortError')downloadCanvas(canvas);
+        }
+      } else {
+        downloadCanvas(canvas);
+      }
+    },'image/png');
+  }catch(e){
+    alert('共有エラー: '+e.message);
+  }
+}
+
+function downloadCanvas(canvas){
+  const a=document.createElement('a');
+  a.download='stableford_result.png';
+  a.href=canvas.toDataURL('image/png');
+  a.click();
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
 }
 
 // ===== コース管理 =====
