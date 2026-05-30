@@ -517,12 +517,14 @@ function buildHoles(){
   alert('names: '+names.join(', '));
   calcHC();
   buildNine('fn',1,9);
+  alert('after buildNine fn');
   buildNine('bn',10,18);
 }
 
 function buildNine(id,start,end){
   // 名前が入力されている人数を取得（最低1人）
   var activePlayers=[0,1,2,3].filter(function(i){return getPlayerName(i)!=='';});
+  alert('buildNine '+id+' activePlayers='+activePlayers.join(','));
   if(activePlayers.length===0)activePlayers=[0];
   const phdr=activePlayers.map(i=>`<div><div class="phdr" style="background:${COLS[i]}"></div><div style="font-size:9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getPlayerName(i)||'P'+(i+1)}</div></div>`).join('');
   let html=`<div class="hg hd"><div>H</div><div>Par</div><div>HDP</div>${phdr}</div>`;
