@@ -272,7 +272,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 
 <div style="display:flex;gap:10px;margin-bottom:14px">
-<button onclick="show(1);alert('nm0='+document.getElementById('nm0').value+' nm1='+document.getElementById('nm1').value+' nm2='+document.getElementById('nm2').value)" class="btn btno" style="flex:1">← 戻る</button>
+<button onclick="show(1)" class="btn btno" style="flex:1">← 戻る</button>
 <button onclick="goStep4()" class="btn btng" style="flex:2">🏆 結果を見る →</button>
 </div>
 </div>
@@ -513,18 +513,13 @@ function updHC(){
 }
 
 function buildHoles(){
-  var names=[0,1,2,3].map(function(i){var el=document.getElementById('nm'+i);return el?el.value:'null';});
-  alert('names: '+names.join(', '));
   calcHC();
   buildNine('fn',1,9);
-  alert('after buildNine fn');
   buildNine('bn',10,18);
 }
 
 function buildNine(id,start,end){
-  // 名前が入力されている人数を取得（最低1人）
   var activePlayers=[0,1,2,3].filter(function(i){return getPlayerName(i)!=='';});
-  alert('buildNine '+id+' activePlayers='+activePlayers.join(','));
   if(activePlayers.length===0)activePlayers=[0];
   const phdr=activePlayers.map(i=>`<div><div class="phdr" style="background:${COLS[i]}"></div><div style="font-size:9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getPlayerName(i)||'P'+(i+1)}</div></div>`).join('');
   let html=`<div class="hg hd"><div>H</div><div>Par</div><div>HDP</div>${phdr}</div>`;
@@ -680,11 +675,38 @@ function goStep2(){
   goStep3();
 }
 function goStep3(){
-  alert('goStep3 called');
   courseName=$('cname').value.trim();
-  alert('before buildHoles');
+  // 既存のスコアデータを保存
+  var savedScores={};
+  for(var h=1;h<=18;h++){
+    savedScores['par_'+h]=$('par_'+h)?$('par_'+h).value:'';
+    savedScores['hdp_'+h]=$('hdp_'+h)?$('hdp_'+h).value:'';
+    for(var i=0;i<4;i++){
+      var el=$('s_'+h+'_'+i);
+      savedScores['s_'+h+'_'+i]=el?el.value:'';
+    }
+  }
+  // ホールを再構築
   buildHoles();
-  alert('after buildHoles');
+  // 保存したスコアを復元
+  for(var h=1;h<=18;h++){
+    if($('par_'+h)&&savedScores['par_'+h])$('par_'+h).value=savedScores['par_'+h];
+    if($('hdp_'+h)&&savedScores['hdp_'+h])$('hdp_'+h).value=savedScores['hdp_'+h];
+    for(var i=0;i<4;i++){
+      var el=$('s_'+h+'_'+i);
+      if(el&&savedScores['s_'+h+'_'+i])el.value=savedScores['s_'+h+'_'+i];
+    }
+  }
+  applyCourseDataToScore();
+  if(importedData){
+    importedData._appliedToHoles=false;
+    applyScoreOnly();
+  }
+  calcHC();
+  for(var h=1;h<=18;h++){
+    refreshHdpMarks(h);
+    updAllPt(h);
+  }
   show(3);
   window.scrollTo(0,0);
 }
