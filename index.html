@@ -249,9 +249,15 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div style="text-align:center;">
 <div style="color:#c9a84c;font-size:11px;font-weight:700;">HOLE</div>
 <div style="color:#fff;font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;" id="holeNumDisp">1</div>
-<div style="display:flex;gap:12px;color:#a0c4a8;font-size:12px;font-weight:700;">
-<span>Par <span id="holeParDisp" style="color:#fff;">-</span></span>
-<span>HDP <span id="holeHdpDisp" style="color:#fff;">-</span></span>
+<div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:4px;">
+<div style="text-align:center;">
+<div style="color:#a0c4a8;font-size:10px;font-weight:700;">Par</div>
+<input id="holeParInput" type="number" min="3" max="5" style="width:52px;padding:6px;border:none;border-radius:8px;font-size:18px;font-weight:900;text-align:center;background:rgba(255,255,255,0.15);color:#fff;" oninput="syncHoleParHdp()">
+</div>
+<div style="text-align:center;">
+<div style="color:#a0c4a8;font-size:10px;font-weight:700;">HDP</div>
+<input id="holeHdpInput" type="number" min="1" max="18" style="width:52px;padding:6px;border:none;border-radius:8px;font-size:18px;font-weight:900;text-align:center;background:rgba(255,255,255,0.15);color:#fff;" oninput="syncHoleParHdp()">
+</div>
 </div>
 </div>
 <button type="button" onclick="nextHole()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;width:44px;height:44px;border-radius:10px;font-size:20px;cursor:pointer;">›</button>
@@ -1385,14 +1391,14 @@ function showHole(h){
   // ホール情報表示
   var parEl=document.getElementById('par_'+h);
   var hdpEl=document.getElementById('hdp_'+h);
-  var par=parEl?parEl.value||'-':'-';
-  var hdp=hdpEl?hdpEl.value||'-':'-';
+  var par=parEl?parEl.value:'';
+  var hdp=hdpEl?hdpEl.value:'';
   var numDisp=document.getElementById('holeNumDisp');
-  var parDisp=document.getElementById('holeParDisp');
-  var hdpDisp=document.getElementById('holeHdpDisp');
+  var parInput=document.getElementById('holeParInput');
+  var hdpInput=document.getElementById('holeHdpInput');
   if(numDisp)numDisp.textContent=h;
-  if(parDisp)parDisp.textContent=par;
-  if(hdpDisp)hdpDisp.textContent=hdp;
+  if(parInput)parInput.value=par;
+  if(hdpInput)hdpInput.value=hdp;
 
   // プレーヤー入力欄
   var container=document.getElementById('holePlayerInputs');
@@ -1456,6 +1462,21 @@ function adjustHoleScore(h,pi,delta){
   el.value=newVal;
   updPt(h,pi);
   updTotals();
+  showHole(h);
+}
+
+function syncHoleParHdp(){
+  var h=_currentHole;
+  var parInput=document.getElementById('holeParInput');
+  var hdpInput=document.getElementById('holeHdpInput');
+  var parEl=document.getElementById('par_'+h);
+  var hdpEl=document.getElementById('hdp_'+h);
+  if(parInput&&parEl)parEl.value=parInput.value;
+  if(hdpInput&&hdpEl){
+    hdpEl.value=hdpInput.value;
+    refreshHdpMarks(h);
+  }
+  updAllPt(h);
   showHole(h);
 }
 
