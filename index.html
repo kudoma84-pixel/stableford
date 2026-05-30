@@ -324,6 +324,22 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div style="background:#fffbeb;border-left:4px solid #c9a84c;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#92400e;margin-top:10px;line-height:1.8;">
 💡 <b>写真がうまく読み取れない場合は手動入力を使用</b><br>
 「📥 AIテキストを貼り付け（手動）」をタップして展開。ChatGPT・Claude・CopilotでAIテキスト化してから貼り付けてください。
+<div style="background:#f8faff;border:2px solid #dbeafe;border-radius:10px;padding:10px;margin-top:8px;">
+<div style="font-size:10px;font-weight:700;color:#1e40af;margin-bottom:5px;">📋 AIアプリへの指示文（長押しでコピー）</div>
+<div style="font-size:11px;line-height:1.8;color:#1e3a5f;font-family:monospace;word-break:break-all;">スコアカードの画像を読み取り、以下の形式のみで出力。説明文不要。
+
+GOLF=ゴルフ場名
+COURSE_OUT=上段（先にプレーするハーフ）のコース名
+COURSE_IN=下段（後にプレーするハーフ）のコース名
+P1=氏名,合計,1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H
+P2=氏名,合計,1H〜18H
+P3=氏名,合計,1H〜18H
+P4=氏名,合計,1H〜18H
+PAR=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H
+HDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H
+
+HDPはHC列の1〜18の難易度数値。スコアではありません。</div>
+</div>
 </div>
 </div>
 
@@ -993,6 +1009,12 @@ function parseRawText(){
     lines.forEach(line=>{
       if(line.startsWith('GOLF=')){
         data.courseName=line.substring(5).trim();
+      }
+      if(line.startsWith('COURSE_OUT=')){
+        data.courseOut=line.substring(11).trim();
+      }
+      if(line.startsWith('COURSE_IN=')){
+        data.courseIn=line.substring(10).trim();
       }else if(line.match(/^P[1-4]=/)){
         const parts=line.substring(3).split(',').map(s=>s.trim());
         if(parts.length>=2){
@@ -1040,6 +1062,8 @@ function parseRawText(){
     if(data.holeInfo&&data.holeInfo.length>0){
       if(registerBtn)registerBtn.style.display='none';
       if(golfNameEl)golfNameEl.textContent=data.courseName||'';
+      if($('importCourseNameOut'))$('importCourseNameOut').value=data.courseOut||'';
+      if($('importCourseNameIn'))$('importCourseNameIn').value=data.courseIn||'';
       if($('importCourseNameOut'))$('importCourseNameOut').value='';
       if($('importCourseNameIn'))$('importCourseNameIn').value='';
       if(inputArea)inputArea.style.display='block';
@@ -1323,7 +1347,7 @@ async function processScoreImage(input){
     });
     progressBar.style.width='50%';
     var mediaType=file.type||'image/jpeg';
-    var prompt='このゴルフスコアカードの画像を読み取り、以下の形式のみで出力してください。説明文は不要です。\n\nGOLF=ゴルフ場名\nP1=氏名,合計,1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nP2=氏名,合計,1H~18H\nP3=氏名,合計,1H~18H\nP4=氏名,合計,1H~18H\nPAR=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nHDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\n\n重要：HDPはスコアカードの「HC」または「HDP」列の数値です。各ホールのハンディキャップ難易度を示す1〜18の数値で、1〜18が各1回ずつ使われます。スコアやボギー数ではありません。プレーヤーが4人未満の場合はいる人数分だけ出力。スコアが読み取れないホールは0を入力。';
+    var prompt='このゴルフスコアカードの画像を読み取り、以下の形式のみで出力してください。説明文は不要です。\n\nGOLF=ゴルフ場名\nCOURSE_OUT=上段（先にプレーするハーフ）のコース名（例：東・西・OUT・IN・富士・北など記載通り）\nCOURSE_IN=下段（後にプレーするハーフ）のコース名（例：東・西・OUT・IN・富士・北など記載通り）\nP1=氏名,合計,1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nP2=氏名,合計,1H~18H\nP3=氏名,合計,1H~18H\nP4=氏名,合計,1H~18H\nPAR=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\nHDP=1H,2H,3H,4H,5H,6H,7H,8H,9H,10H,11H,12H,13H,14H,15H,16H,17H,18H\n\n重要：HDPはスコアカードの「HC」または「HDP」列の数値です。各ホールのハンディキャップ難易度を示す1〜18の数値で、1〜18が各1回ずつ使われます。スコアやボギー数ではありません。COURSE_OUTとCOURSE_INが不明な場合は空欄にしてください。プレーヤーが4人未満の場合はいる人数分だけ出力。スコアが読み取れないホールは0を入力。';
     var response=await fetch('/api/claude',{
       method:'POST',
       headers:{
