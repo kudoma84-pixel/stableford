@@ -252,11 +252,11 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:4px;">
 <div style="text-align:center;">
 <div style="color:#a0c4a8;font-size:10px;font-weight:700;">Par</div>
-<input id="holeParInput" type="number" min="3" max="5" style="width:52px;padding:6px;border:none;border-radius:8px;font-size:18px;font-weight:900;text-align:center;background:rgba(255,255,255,0.15);color:#fff;" oninput="syncHoleParHdp()">
+<input id="holeParInput" type="text" inputmode="numeric" pattern="[0-9]*" style="width:52px;padding:6px;border:none;border-radius:8px;font-size:18px;font-weight:900;text-align:center;background:rgba(255,255,255,0.15);color:#fff;" oninput="syncHoleParHdp()">
 </div>
 <div style="text-align:center;">
 <div style="color:#a0c4a8;font-size:10px;font-weight:700;">HDP</div>
-<input id="holeHdpInput" type="number" min="1" max="18" style="width:52px;padding:6px;border:none;border-radius:8px;font-size:18px;font-weight:900;text-align:center;background:rgba(255,255,255,0.15);color:#fff;" oninput="syncHoleParHdp()">
+<input id="holeHdpInput" type="text" inputmode="numeric" pattern="[0-9]*" style="width:52px;padding:6px;border:none;border-radius:8px;font-size:18px;font-weight:900;text-align:center;background:rgba(255,255,255,0.15);color:#fff;" oninput="syncHoleParHdp()">
 </div>
 </div>
 </div>
@@ -485,6 +485,25 @@ function getPlayerName(i){
 
 function updHC(){
   calcHC();
+  // 名前が入力された分だけスコア欄を表示
+  [0,1,2,3].forEach(function(i){
+    var row=document.querySelector('.prow:nth-child('+(i+1)+')');
+    var nmEl=document.getElementById('nm'+i);
+    var scWrap=nmEl?nmEl.closest('.prow').querySelector('.pscore-wrap'):null;
+    if(scWrap){
+      if(i===0||getPlayerName(i-1)!==''){
+        scWrap.style.display='';
+      }
+    }
+    // 2人目以降は前の人の名前がない場合は行ごと薄く表示
+    if(i>0){
+      var prevName=getPlayerName(i-1);
+      var curRow=document.getElementById('nm'+i)?document.getElementById('nm'+i).closest('.prow'):null;
+      if(curRow){
+        curRow.style.opacity=prevName?'1':'0.3';
+      }
+    }
+  });
   $('hb').innerHTML=HC.map((hc,i)=>{
     const sc=$('sc'+i)?.value||'';
     const name=getPlayerName(i);
@@ -494,20 +513,25 @@ function updHC(){
 }
 
 function buildHoles(){
+  var names=[0,1,2,3].map(function(i){var el=document.getElementById('nm'+i);return el?el.value:'null';});
+  alert('names: '+names.join(', '));
   calcHC();
   buildNine('fn',1,9);
   buildNine('bn',10,18);
 }
 
 function buildNine(id,start,end){
-  const phdr=[0,1,2,3].map(i=>`<div><div class="phdr" style="background:${COLS[i]}"></div><div style="font-size:9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getPlayerName(i)}</div></div>`).join('');
+  // 名前が入力されている人数を取得（最低1人）
+  var activePlayers=[0,1,2,3].filter(function(i){return getPlayerName(i)!=='';});
+  if(activePlayers.length===0)activePlayers=[0];
+  const phdr=activePlayers.map(i=>`<div><div class="phdr" style="background:${COLS[i]}"></div><div style="font-size:9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getPlayerName(i)||'P'+(i+1)}</div></div>`).join('');
   let html=`<div class="hg hd"><div>H</div><div>Par</div><div>HDP</div>${phdr}</div>`;
   for(let h=start;h<=end;h++){
-    const inp=[0,1,2,3].map(i=>`<div class="scwrap"><span class="hcmark" id="m_${h}_${i}" style="display:none"></span><input class="si" id="s_${h}_${i}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="1" max="15" placeholder="-" oninput="updPt(${h},${i});autoNext('s_${h}_${i}')"><div class="netshow" id="n_${h}_${i}"></div></div>`).join('');
+    const inp=activePlayers.map(i=>`<div class="scwrap"><span class="hcmark" id="m_${h}_${i}" style="display:none"></span><input class="si" id="s_${h}_${i}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="1" max="15" placeholder="-" oninput="updPt(${h},${i});autoNext('s_${h}_${i}')"><div class="netshow" id="n_${h}_${i}"></div></div>`).join('');
     html+=`<div class="hg"><div class="hno">${h}</div><input class="miniinp" id="par_${h}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="3" max="6" placeholder="P" oninput="updAllPt(${h});autoNext('par_${h}')"><input class="miniinp" id="hdp_${h}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="1" max="18" placeholder="H" oninput="refreshHdpMarks(${h});updAllPt(${h});autoNext('hdp_${h}')">${inp}</div>`;
   }
   const pfx=start===1?'f':'b';
-  const tc=[0,1,2,3].map(i=>`<div class="tc" id="${pfx}p_${i}">-</div>`).join('');
+  const tc=activePlayers.map(i=>`<div class="tc" id="${pfx}p_${i}">-</div>`).join('');
   html+=`<div class="trow"><div class="tl">小計</div>${tc}</div>`;
   $(id).innerHTML=html;
 }
@@ -654,17 +678,42 @@ function goStep2(){
   goStep3();
 }
 function goStep3(){
+  alert('goStep3 called');
   courseName=$('cname').value.trim();
-  // ホールを必ず再構築
+  // 既存のスコアデータを保存
+  var savedScores={};
+  for(var h=1;h<=18;h++){
+    savedScores['par_'+h]=$('par_'+h)?$('par_'+h).value:'';
+    savedScores['hdp_'+h]=$('hdp_'+h)?$('hdp_'+h).value:'';
+    for(var i=0;i<4;i++){
+      var el=$('s_'+h+'_'+i);
+      savedScores['s_'+h+'_'+i]=el?el.value:'';
+    }
+  }
+  // ホールを再構築（名前の人数変化に対応）
   buildHoles();
-  // ① コース登録データのPar・HDPを先に適用
+  // 保存したスコアを復元
+  for(var h=1;h<=18;h++){
+    if($('par_'+h)&&savedScores['par_'+h])$('par_'+h).value=savedScores['par_'+h];
+    if($('hdp_'+h)&&savedScores['hdp_'+h])$('hdp_'+h).value=savedScores['hdp_'+h];
+    for(var i=0;i<4;i++){
+      var el=$('s_'+h+'_'+i);
+      if(el&&savedScores['s_'+h+'_'+i])el.value=savedScores['s_'+h+'_'+i];
+    }
+  }
+  // ① コース登録データのPar・HDPを適用（未入力の場合のみ）
   applyCourseDataToScore();
-  // ② スコアデータを適用（Par・HDPは上書きしない）
+  // ② importedDataのスコアを適用
   if(importedData){
     importedData._appliedToHoles=false;
     applyScoreOnly();
   }
   calcHC();
+  // ポイント再計算
+  for(var h=1;h<=18;h++){
+    refreshHdpMarks(h);
+    updAllPt(h);
+  }
   show(3);
   window.scrollTo(0,0);
 }
@@ -719,7 +768,30 @@ function applyScoreOnly(){
     updAllPt(h);
   }
 }
-function goStep4(){renderResults();show(4);window.scrollTo(0,0);}
+function goStep4(){
+  // 未入力チェック
+  var missing=[];
+  var rounds=getRoundHoles();
+  var playerCount=[0,1,2,3].filter(function(i){return getPlayerName(i)!=='';}).length||1;
+  rounds.forEach(function(h){
+    for(var i=0;i<playerCount;i++){
+      var el=document.getElementById('s_'+h+'_'+i);
+      if(!el||!el.value||el.value===''){
+        missing.push(h);
+        return;
+      }
+    }
+  });
+  // 重複除去
+  missing=missing.filter(function(v,i,a){return a.indexOf(v)===i;});
+  if(missing.length>0){
+    var msg='以下のホールにスコア未入力があります：\n'+missing.join('H, ')+'H\n\nこのまま結果を見ますか？';
+    if(!confirm(msg))return;
+  }
+  renderResults();
+  show(4);
+  window.scrollTo(0,0);
+}
 function backToScore(){show(3);window.scrollTo(0,0);}
 
 function resetAll(){
