@@ -680,40 +680,9 @@ function goStep2(){
 function goStep3(){
   alert('goStep3 called');
   courseName=$('cname').value.trim();
-  // 既存のスコアデータを保存
-  var savedScores={};
-  for(var h=1;h<=18;h++){
-    savedScores['par_'+h]=$('par_'+h)?$('par_'+h).value:'';
-    savedScores['hdp_'+h]=$('hdp_'+h)?$('hdp_'+h).value:'';
-    for(var i=0;i<4;i++){
-      var el=$('s_'+h+'_'+i);
-      savedScores['s_'+h+'_'+i]=el?el.value:'';
-    }
-  }
-  // ホールを再構築（名前の人数変化に対応）
+  alert('before buildHoles');
   buildHoles();
-  // 保存したスコアを復元
-  for(var h=1;h<=18;h++){
-    if($('par_'+h)&&savedScores['par_'+h])$('par_'+h).value=savedScores['par_'+h];
-    if($('hdp_'+h)&&savedScores['hdp_'+h])$('hdp_'+h).value=savedScores['hdp_'+h];
-    for(var i=0;i<4;i++){
-      var el=$('s_'+h+'_'+i);
-      if(el&&savedScores['s_'+h+'_'+i])el.value=savedScores['s_'+h+'_'+i];
-    }
-  }
-  // ① コース登録データのPar・HDPを適用（未入力の場合のみ）
-  applyCourseDataToScore();
-  // ② importedDataのスコアを適用
-  if(importedData){
-    importedData._appliedToHoles=false;
-    applyScoreOnly();
-  }
-  calcHC();
-  // ポイント再計算
-  for(var h=1;h<=18;h++){
-    refreshHdpMarks(h);
-    updAllPt(h);
-  }
+  alert('after buildHoles');
   show(3);
   window.scrollTo(0,0);
 }
