@@ -1941,7 +1941,8 @@ async function shareResult(){
     // 高さ計算
     const headerH=120,rankH=players.length*70,tableRowH=28;
     const tableH=40+(holes.filter(h=>h.par>0).length+1)*tableRowH;
-    const totalH=headerH+rankH+tableH+80;
+    const tallyH=56+36+(players.filter((_,i)=>getPlayerName(i)!=='').length+1)*32+20;
+    const totalH=headerH+rankH+tableH+tallyH+80;
     canvas.height=totalH*dpr;
     canvas.width=W*dpr;
     ctx.scale(dpr,dpr);
@@ -2057,6 +2058,96 @@ async function shareResult(){
       ctx.font='bold 16px sans-serif';
       ctx.fillText(p.tot,PADDING+colW*(3+pi)+colW/2,y+23);
     });
+
+    // 最終集計セクション
+    y+=20;
+    // セクションヘッダー
+    const fg=ctx.createLinearGradient(0,y,W,y);
+    fg.addColorStop(0,'#c9a84c');
+    fg.addColorStop(1,'#a87c2a');
+    ctx.fillStyle=fg;
+    ctx.fillRect(PADDING,y,W-PADDING*2,36);
+    ctx.fillStyle='#000';
+    ctx.font='bold 14px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('🏆 最終集計（スタボ＋五輪＋ニアピン）',W/2,y+23);
+    y+=36;
+
+    // 集計データ収集
+    var fplayers=[0,1,2,3].filter(function(i){return getPlayerName(i)!=='';});
+    var fn=fplayers.length;
+    var fstabo=stabo; // 既に計算済み
+    var fstaboMap={};
+    fstabo.forEach(function(r,rank){fstaboMap[r.i]=[30,10,-10,-30][rank]||0;});
+    var folympicTots={},folympicSum=0;
+    fplayers.forEach(function(i){var t=calcOlympicTotal(i);folympicTots[i]=t;folympicSum+=t;});
+    var folympicPts={};
+    fplayers.forEach(function(i){folympicPts[i]=(folympicTots[i]*fn)-folympicSum;});
+    var fnpCounts={},fnpPts={};
+    fplayers.forEach(function(i){fnpCounts[i]=calcNearpinCount(i);});
+    fplayers.forEach(function(i){
+      var earned=fnpCounts[i]*5*(fn-1);
+      var paid=0;
+      fplayers.forEach(function(j){if(j!==i)paid+=fnpCounts[j]*5;});
+      fnpPts[i]=earned-paid;
+    });
+    var fyakitoriPts={};
+    fplayers.forEach(function(i){fyakitoriPts[i]=0;});
+    fplayers.forEach(function(i){
+      var hasPar=false;
+      holes.forEach(function(h){
+        var inp=document.getElementById('s_'+h.hole+'_'+i);
+        var g=parseInt(inp?.value);
+        if(!isNaN(g)&&g>0&&h.par>0&&g<=h.par)hasPar=true;
+      });
+      if(!hasPar){
+        fyakitoriPts[i]-=(fn-1)*5;
+        fplayers.forEach(function(j){if(j!==i)fyakitoriPts[j]+=5;});
+      }
+    });
+    var fsorted=fplayers.slice().sort(function(a,b){
+      var ta=fstaboMap[a]+folympicPts[a]+fnpPts[a]+fyakitoriPts[a];
+      var tb=fstaboMap[b]+folympicPts[b]+fnpPts[b]+fyakitoriPts[b];
+      return tb-ta;
+    });
+
+    // 集計テーブルヘッダー
+    const fcols=['名前','スタボ','五輪','ニアピン','ヤキトリ','合計'];
+    const fcolW=(W-PADDING*2)/fcols.length;
+    ctx.fillStyle='#1a5c2e';
+    ctx.fillRect(PADDING,y,W-PADDING*2,30);
+    ctx.fillStyle='#fff';
+    ctx.font='bold 11px sans-serif';
+    ctx.textAlign='center';
+    fcols.forEach(function(c,ci){
+      if(ci===fcols.length-1)ctx.fillStyle='#c9a84c';
+      ctx.fillText(c,PADDING+fcolW*ci+fcolW/2,y+20);
+      ctx.fillStyle='#fff';
+    });
+    y+=30;
+
+    // 集計データ行
+    const fmedals=['🥇','🥈','🥉','　'];
+    fsorted.forEach(function(i,rank){
+      var total=fstaboMap[i]+folympicPts[i]+fnpPts[i]+fyakitoriPts[i];
+      ctx.fillStyle=rank%2===0?'#fff':'#f9fafb';
+      ctx.fillRect(PADDING,y,W-PADDING*2,32);
+      // 名前
+      ctx.fillStyle='#1a5c2e';
+      ctx.font='bold 12px sans-serif';
+      ctx.textAlign='left';
+      ctx.fillText(fmedals[rank]+getPlayerName(i),PADDING+fcolW*0+4,y+21);
+      // 各点数
+      var vals=[fstaboMap[i],folympicPts[i],fnpPts[i],fyakitoriPts[i],total];
+      vals.forEach(function(v,vi){
+        ctx.fillStyle=v>0?'#065f46':v<0?'#991b1b':'#6b7280';
+        ctx.font='bold 12px sans-serif';
+        ctx.textAlign='center';
+        ctx.fillText((v>0?'+':'')+v,PADDING+fcolW*(vi+1)+fcolW/2,y+21);
+      });
+      y+=32;
+    });
+    y+=10;
 
     // 画像として共有
     canvas.toBlob(async function(blob){
