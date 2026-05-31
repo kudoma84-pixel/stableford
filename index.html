@@ -1874,7 +1874,7 @@ function showFinalTally(){
     html+=ptCell(olympicPts[i]);
     html+=ptCell(npPts[i]);
     html+=ptCell(yakitoriPts[i]);
-    html+='<td style="padding:8px 4px;text-align:center;font-family:\'Bebas Neue\',sans-serif;font-size:18px;font-weight:900;color:'+(isPlus?'#065f46':'#991b1b')+';">'+(isPlus?'+':'')+total+'</td>';
+    html+='<td style="padding:8px 4px;text-align:center;font-family:\'Bebas Neue\',sans-serif;font-size:18px;font-weight:900;color:'+(isPlus?'#065f46':'#991b1b')+';">'+(total>0?'+':'')+total+'</td>';
     html+='</tr>';
   });
   html+='</tbody></table></div>';
