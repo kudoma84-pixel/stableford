@@ -755,16 +755,27 @@ function goStep3(){
     refreshHdpMarks(h);
     updAllPt(h);
   }
-  // 常にカード表示から始める
-  _inputMode='card';
+  // 写真取り込み済みの場合は1ホール入力モード、それ以外はカード表示
+  var useHoleMode=importedData!=null;
+  _inputMode=useHoleMode?'hole':'card';
   var cardMode=document.getElementById('cardMode');
   var holeMode=document.getElementById('holeMode');
   var cardBtn=document.getElementById('modeCardBtn');
   var holeBtn=document.getElementById('modeHoleBtn');
-  if(cardMode)cardMode.style.display='block';
-  if(holeMode)holeMode.style.display='none';
-  if(cardBtn){cardBtn.style.background='#1a5c2e';cardBtn.style.color='#fff';}
-  if(holeBtn){holeBtn.style.background='#e5e7eb';holeBtn.style.color='#374151';}
+  if(useHoleMode){
+    if(cardMode)cardMode.style.display='none';
+    if(holeMode)holeMode.style.display='block';
+    if(cardBtn){cardBtn.style.background='#e5e7eb';cardBtn.style.color='#374151';}
+    if(holeBtn){holeBtn.style.background='#1a5c2e';holeBtn.style.color='#fff';}
+    _currentHole=_startHole;
+    buildHoleTabBar();
+    showHole(_startHole);
+  } else {
+    if(cardMode)cardMode.style.display='block';
+    if(holeMode)holeMode.style.display='none';
+    if(cardBtn){cardBtn.style.background='#1a5c2e';cardBtn.style.color='#fff';}
+    if(holeBtn){holeBtn.style.background='#e5e7eb';holeBtn.style.color='#374151';}
+  }
   show(3);
   window.scrollTo(0,0);
 }
