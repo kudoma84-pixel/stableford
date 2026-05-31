@@ -637,6 +637,8 @@ function updTotals(){
   // 差ハンデを再計算
   calcHC();
   updHC();
+  // 自動保存
+  autoSave();
 }
 
 function getHoleData(){
@@ -860,6 +862,8 @@ function doResetAll(){
   HC=[0,0,0,0];
   NS=['Aさん','Bさん','Cさん','Dさん'];
   localStorage.removeItem('sf_selected');
+  localStorage.removeItem('sf_autosave');
+  localStorage.removeItem('sf_autosave_time');
   buildPlayers();
   show(1);
   window.scrollTo(0,0);
@@ -897,7 +901,8 @@ function saveRound(){
   // 最大20件まで保存
   if(saved.length>50)saved.length=50;
   localStorage.setItem('stableford_history',JSON.stringify(saved));
-  
+  localStorage.removeItem('sf_autosave');
+  localStorage.removeItem('sf_autosave_time');
   alert('saved');
   renderHistory();
 }
@@ -2047,6 +2052,93 @@ function loadBothCourses(outId,inId){
 buildPlayers();
 updHC();
 initApiKeyArea();
+checkAutoSave();
+
+// ===== 自動保存・復元 =====
+function autoSave(){
+  try{
+    var data={
+      courseName:$('cname')?$('cname').value:'',
+      players:[0,1,2,3].map(function(i){
+        return{
+          name:$('nm'+i)?$('nm'+i).value:'',
+          score:$('sc'+i)?$('sc'+i).value:''
+        };
+      }),
+      start:_startHole,
+      holes:{}
+    };
+    for(var h=1;h<=18;h++){
+      data.holes[h]={
+        par:$('par_'+h)?$('par_'+h).value:'',
+        hdp:$('hdp_'+h)?$('hdp_'+h).value:''
+      };
+      for(var i=0;i<4;i++){
+        var el=$('s_'+h+'_'+i);
+        if(el)data.holes[h]['s'+i]=el.value;
+      }
+    }
+    localStorage.setItem('sf_autosave',JSON.stringify(data));
+    localStorage.setItem('sf_autosave_time',Date.now());
+  }catch(e){}
+}
+
+function checkAutoSave(){
+  try{
+    var saved=localStorage.getItem('sf_autosave');
+    if(!saved)return;
+    var data=JSON.parse(saved);
+    // 名前が1人以上入っているか確認
+    var hasData=data.players&&data.players.some(function(p){return p.name;});
+    if(!hasData)return;
+    var time=localStorage.getItem('sf_autosave_time');
+    var timeStr=time?new Date(parseInt(time)).toLocaleString('ja-JP'):'';
+    showConfirmDialog('前回の入力データがあります（'+timeStr+'）\n\n続きから再開しますか？',function(){
+      restoreAutoSave(data);
+    });
+    // NOの場合はそのまま（クリアしない）
+    // 「いいえ」ボタンにクリア処理を追加
+    var cancelBtn=document.getElementById('confirmCancel');
+    if(cancelBtn){
+      cancelBtn.onclick=function(){
+        localStorage.removeItem('sf_autosave');
+        localStorage.removeItem('sf_autosave_time');
+        var modal=$('confirmModal');
+        if(modal)modal.classList.remove('active');
+      };
+    }
+  }catch(e){}
+}
+
+function restoreAutoSave(data){
+  // ゴルフ場名・スタート
+  if($('cname')&&data.courseName)$('cname').value=data.courseName;
+  if(data.start)setStart(data.start);
+  // プレーヤー名・スコア
+  data.players.forEach(function(p,i){
+    if($('nm'+i))$('nm'+i).value=p.name||'';
+    if($('sc'+i))$('sc'+i).value=p.score||'';
+  });
+  updHC();
+  // ホールデータを復元
+  buildHoles();
+  for(var h=1;h<=18;h++){
+    if(!data.holes||!data.holes[h])continue;
+    if($('par_'+h))$('par_'+h).value=data.holes[h].par||'';
+    if($('hdp_'+h))$('hdp_'+h).value=data.holes[h].hdp||'';
+    for(var i=0;i<4;i++){
+      var el=$('s_'+h+'_'+i);
+      if(el)el.value=data.holes[h]['s'+i]||'';
+    }
+  }
+  calcHC();
+  for(var h=1;h<=18;h++){
+    refreshHdpMarks(h);
+    updAllPt(h);
+  }
+  show(1);
+  alert('データを復元しました！\nスコアページで続きを入力してください。');
+}
 
 // 入力後に次のフィールドへ自動移動
 function autoNext(currentId){
