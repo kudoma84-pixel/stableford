@@ -1861,7 +1861,12 @@ function showFinalTally(){
   var sorted=players.slice().sort(function(a,b){
     var ta=staboMap[a]+olympicPts[a]+npPts[a]+yakitoriPts[a];
     var tb=staboMap[b]+olympicPts[b]+npPts[b]+yakitoriPts[b];
-    return tb-ta;
+    if(tb!==ta)return tb-ta;
+    // 同点の場合はスタボと同じ後半ポイント→グロス順
+    var sa=stabo.find(function(r){return r.i===a;});
+    var sb=stabo.find(function(r){return r.i===b;});
+    if(sb.backTot!==sa.backTot)return sb.backTot-sa.backTot;
+    return sa.grossTot-sb.grossTot;
   });
 
   var medals=['🥇','🥈','🥉','　'];
