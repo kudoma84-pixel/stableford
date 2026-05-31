@@ -284,6 +284,8 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 <div style="clear:both;display:block;margin-top:20px;margin-bottom:40px">
 <button type="button" onclick="shareResult()" class="btn" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#06b6d4,#0284c7);color:#fff;font-weight:900;">📤 結果を画像で共有</button>
+<button type="button" onclick="showFinalTally()" class="btn" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#c9a84c,#a87c2a);color:#fff;font-weight:900;">🏆 最終集計（スタボ＋五輪＋ニアピン）</button>
+<div id="finalTally" style="display:none;margin-bottom:10px;"></div>
 <button type="button" onclick="saveRound()" class="btn btng" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">💾 このラウンドを保存</button>
 <button type="button" onclick="show(3)" class="btn" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5;background:transparent;border:2px solid #fff;color:#fff;">← スコア修正</button>
 <button type="button" onclick="resetAll()" class="btn btnp" style="display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
@@ -546,7 +548,7 @@ function buildNine(id,start,end){
   let html=`<div class="hg hd"><div>H</div><div>Par</div><div>HDP</div>${phdr}</div>`;
   for(let h=start;h<=end;h++){
     const inp=activePlayers.map(i=>`<div class="scwrap"><span class="hcmark" id="m_${h}_${i}" style="display:none"></span><input class="si" id="s_${h}_${i}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="1" max="15" placeholder="-" oninput="updPt(${h},${i});autoNext('s_${h}_${i}')"><div class="netshow" id="n_${h}_${i}"></div></div>`).join('');
-    html+=`<div class="hg"><div class="hno">${h}</div><input class="miniinp" id="par_${h}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="3" max="6" placeholder="P" oninput="updAllPt(${h});autoNext('par_${h}')"><input class="miniinp" id="hdp_${h}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="1" max="18" placeholder="H" oninput="refreshHdpMarks(${h});updAllPt(${h});autoNext('hdp_${h}')">${inp}</div>`;
+    html+=`<div class="hg"><div class="hno">${h}</div><input class="miniinp" id="par_${h}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="3" max="6" placeholder="P" oninput="setParDefault(${h});updAllPt(${h});autoNext('par_${h}')"><input class="miniinp" id="hdp_${h}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="1" max="18" placeholder="H" oninput="refreshHdpMarks(${h});updAllPt(${h});autoNext('hdp_${h}')">${inp}</div>`;
   }
   const pfx=start===1?'f':'b';
   const tc=activePlayers.map(i=>`<div class="tc" id="${pfx}p_${i}">-</div>`).join('');
@@ -569,6 +571,17 @@ function calcPt(g,par,hs){
   if(diff===0)return 2;
   if(diff===1)return 1;
   return 0;
+}
+
+function setParDefault(h){
+  var par=parseInt(document.getElementById('par_'+h)?.value);
+  if(!par)return;
+  // スコアが未入力のプレーヤーにParをセット
+  [0,1,2,3].forEach(function(i){
+    if(!getPlayerName(i))return;
+    var se=document.getElementById('s_'+h+'_'+i);
+    if(se&&!se.value)se.value=par;
+  });
 }
 
 function updAllPt(h){[0,1,2,3].forEach(i=>updPt(h,i));}
@@ -760,6 +773,12 @@ function applyCourseDataToScore(){
     var he=document.getElementById('hdp_'+holeNum);
     if(pe)pe.value=h.par;
     if(he)he.value=h.hdp;
+    // スコアが未入力の場合はParをデフォルトスコアとして設定
+    var activePlayers=[0,1,2,3].filter(function(i){return getPlayerName(i)!=='';});
+    activePlayers.forEach(function(i){
+      var se=document.getElementById('s_'+holeNum+'_'+i);
+      if(se&&!se.value&&h.par)se.value=h.par;
+    });
   });
 }
 
@@ -1445,6 +1464,69 @@ function getRoundIndex(h){
   return getRoundHoles().indexOf(h);
 }
 
+// ===== オリンピック・ニアピンデータ管理 =====
+var _olympicData={};  // {h_i: {medal, suna, sao, birdie}}
+var _nearpinData={};  // {h_i: bool}
+var _yakitoriData={}; // {i: bool} ラウンド終了後に自動判定
+
+function setOlympicData(h,i,key,val){
+  var k=h+'_'+i;
+  if(!_olympicData[k])_olympicData[k]={};
+  _olympicData[k][key]=val;
+  autoSave();
+}
+
+function getOlympicData(h,i,key){
+  var k=h+'_'+i;
+  return _olympicData[k]?_olympicData[k][key]:null;
+}
+
+function setNearpin(h,i,val){
+  _nearpinData[h+'_'+i]=val;
+  autoSave();
+}
+
+function getNearpin(h,i){
+  return _nearpinData[h+'_'+i]||false;
+}
+
+// オリンピック点数計算（1ホール・1プレーヤー）
+function calcOlympicPtForHole(h,i){
+  var d=_olympicData[h+'_'+i]||{};
+  var pt=0;
+  var medal=d.medal||'';
+  if(medal==='diamond')pt+=5;
+  else if(medal==='gold')pt+=4;
+  else if(medal==='silver')pt+=3;
+  else if(medal==='bronze')pt+=2;
+  else if(medal==='iron')pt+=1;
+  else if(medal==='scrap')pt-=1;
+  if(d.suna&&medal&&medal!=='scrap'&&medal!=='')pt+=3;
+  if(d.sao==='1')pt+=1;
+  else if(d.sao==='fail2')pt=0; // メダル点なし
+  else if(d.sao==='fail3')pt-=1;
+  var birdie=d.birdie||'';
+  if(birdie==='birdie')pt+=3;
+  else if(birdie==='eagle')pt+=5;
+  else if(birdie==='albatross')pt+=10;
+  else if(birdie==='holeinone')pt+=10;
+  return pt;
+}
+
+// 全18ホールのオリンピック合計点
+function calcOlympicTotal(i){
+  var tot=0;
+  for(var h=1;h<=18;h++)tot+=calcOlympicPtForHole(h,i);
+  return tot;
+}
+
+// ニアピン合計（獲得回数）
+function calcNearpinCount(i){
+  var cnt=0;
+  for(var h=1;h<=18;h++){if(_nearpinData[h+'_'+i])cnt++;}
+  return cnt;
+}
+
 // ===== 1ホール入力モード =====
 var _inputMode='card';
 var _currentHole=1;
@@ -1519,7 +1601,89 @@ function showHole(h){
   // プレーヤー入力欄
   var container=document.getElementById('holePlayerInputs');
   if(!container)return;
+  var par=parseInt(document.getElementById('par_'+h)?.value)||0;
+  var isShort=par===3;
   var html='';
+
+  // オリンピック入力エリア
+  html+='<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid #e5e7eb;">';
+  html+='<div style="font-size:12px;font-weight:900;color:#1a5c2e;margin-bottom:8px;">🏅 オリンピック</div>';
+  for(var i=0;i<4;i++){
+    var name=getPlayerName(i);
+    if(!name)continue;
+    var medal=getOlympicData(h,i,'medal')||'';
+    var suna=getOlympicData(h,i,'suna')||false;
+    var sao=getOlympicData(h,i,'sao')||'';
+    var birdie=getOlympicData(h,i,'birdie')||'';
+    html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">';
+    html+='<div style="width:10px;height:10px;border-radius:50%;background:'+COLS[i]+';flex-shrink:0;"></div>';
+    html+='<div style="font-size:13px;font-weight:700;color:#374151;width:60px;flex-shrink:0;">'+name+'</div>';
+    // メダルセレクト
+    html+='<select onchange="setOlympicData('+h+','+i+',\'medal\',this.value)" style="flex:1;padding:6px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;">';
+    html+='<option value=""'+(medal===''?' selected':'')+'>—</option>';
+    html+='<option value="diamond"'+(medal==='diamond'?' selected':'')+'>💎ダイヤ(5)</option>';
+    html+='<option value="gold"'+(medal==='gold'?' selected':'')+'>🥇金(4)</option>';
+    html+='<option value="silver"'+(medal==='silver'?' selected':'')+'>🥈銀(3)</option>';
+    html+='<option value="bronze"'+(medal==='bronze'?' selected':'')+'>🥉銅(2)</option>';
+    html+='<option value="iron"'+(medal==='iron'?' selected':'')+'>鉄(1)</option>';
+    html+='<option value="scrap"'+(medal==='scrap'?' selected':'')+'>クズ鉄(-1)</option>';
+    html+='</select>';
+    // 砂1チェック
+    html+='<label style="display:flex;align-items:center;gap:2px;font-size:11px;color:#374151;flex-shrink:0;">';
+    html+='<input type="checkbox" onchange="setOlympicData('+h+','+i+',\'suna\',this.checked)"'+(suna?' checked':'')+'>砂1</label>';
+    // サオ
+    html+='<select onchange="setOlympicData('+h+','+i+',\'sao\',this.value)" style="padding:4px;border:1.5px solid #d1d5db;border-radius:6px;font-size:11px;background:#fff;flex-shrink:0;">';
+    html+='<option value=""'+(sao===''?' selected':'')+'>サオ</option>';
+    html+='<option value="1"'+(sao==='1'?' selected':'')+'>○宣言</option>';
+    html+='<option value="fail2"'+(sao==='fail2'?' selected':'')+'>×2パ</option>';
+    html+='<option value="fail3"'+(sao==='fail3'?' selected':'')+'>×3パ</option>';
+    html+='</select>';
+    html+='</div>';
+  }
+  // バーディー・イーグル等
+  html+='<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #e5e7eb;">';
+  html+='<div style="font-size:11px;color:#6b7280;margin-bottom:4px;">バーディー以上</div>';
+  html+='<div style="display:flex;flex-wrap:wrap;gap:4px;">';
+  for(var i=0;i<4;i++){
+    var name=getPlayerName(i);
+    if(!name)continue;
+    var birdie=getOlympicData(h,i,'birdie')||'';
+    html+='<div style="display:flex;align-items:center;gap:4px;background:#f9fafb;border-radius:8px;padding:4px 8px;">';
+    html+='<div style="width:8px;height:8px;border-radius:50%;background:'+COLS[i]+';"></div>';
+    html+='<span style="font-size:11px;font-weight:700;">'+name+'</span>';
+    html+='<select onchange="setOlympicData('+h+','+i+',\'birdie\',this.value)" style="padding:2px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;background:#fff;">';
+    html+='<option value=""'+(birdie===''?' selected':'')+'>—</option>';
+    html+='<option value="birdie"'+(birdie==='birdie'?' selected':'')+'>バーディ+3</option>';
+    html+='<option value="eagle"'+(birdie==='eagle'?' selected':'')+'>イーグル+5</option>';
+    html+='<option value="albatross"'+(birdie==='albatross'?' selected':'')+'>アルバ+10</option>';
+    html+='<option value="holeinone"'+(birdie==='holeinone'?' selected':'')+'>HIO+10</option>';
+    html+='</select>';
+    html+='</div>';
+  }
+  html+='</div></div>';
+  html+='</div>';
+
+  // ニアピン（Par3のみ）
+  if(isShort){
+    html+='<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:12px;margin-bottom:10px;">';
+    html+='<div style="font-size:12px;font-weight:900;color:#92400e;margin-bottom:8px;">📍 ニアピン（Par3）</div>';
+    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+    for(var i=0;i<4;i++){
+      var name=getPlayerName(i);
+      if(!name)continue;
+      var np=getNearpin(h,i);
+      html+='<label style="display:flex;align-items:center;gap:4px;background:'+(np?'#fef3c7':'#fff')+';border:1.5px solid '+(np?'#f59e0b':'#d1d5db')+';border-radius:8px;padding:6px 10px;cursor:pointer;">';
+      html+='<input type="checkbox" onchange="setNearpin('+h+','+i+',this.checked)"'+(np?' checked':'')+'>';
+      html+='<div style="width:8px;height:8px;border-radius:50%;background:'+COLS[i]+';"></div>';
+      html+='<span style="font-size:13px;font-weight:700;">'+name+'</span>';
+      html+='</label>';
+    }
+    html+='</div>';
+    html+='</div>';
+  }
+
+  // スコア入力
+  html+='<div style="font-size:12px;font-weight:900;color:#1a5c2e;margin-bottom:8px;">📝 スコア</div>';
   for(var i=0;i<4;i++){
     var name=getPlayerName(i);
     if(!name)continue;
@@ -1527,9 +1691,7 @@ function showHole(h){
     var val=scoreEl?parseInt(scoreEl.value)||0:0;
     var netEl=document.getElementById('n_'+h+'_'+i);
     var net=netEl?netEl.innerHTML:'';
-    // ポイント色
-    var ptColor='#6b7280';
-    var ptBg='#f3f4f6';
+    var ptColor='#6b7280',ptBg='#f3f4f6';
     if(scoreEl&&scoreEl.dataset.point){
       var pt=parseInt(scoreEl.dataset.point);
       if(pt>=3){ptColor='#065f46';ptBg='#d1fae5';}
@@ -1543,20 +1705,16 @@ function showHole(h){
     html+='<div style="width:12px;height:12px;border-radius:50%;background:'+COLS[i]+';"></div>';
     html+='<div style="font-size:15px;font-weight:900;color:#1a5c2e;">'+name+'</div>';
     html+='</div>';
-    if(val>0){
-      html+='<div style="background:'+ptBg+';color:'+ptColor+';border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;">'+net+'</div>';
-    }
+    if(val>0){html+='<div style="background:'+ptBg+';color:'+ptColor+';border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;">'+net+'</div>';}
     html+='</div>';
-    // +/-ボタンとスコア表示
     html+='<div style="display:flex;align-items:center;gap:12px;">';
     html+='<button type="button" onclick="adjustHoleScore('+h+','+i+',-1)" style="width:60px;height:60px;border:none;border-radius:12px;background:#e5e7eb;font-size:28px;font-weight:900;cursor:pointer;color:#374151;">−</button>';
     html+='<div style="flex:1;text-align:center;">';
-    html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:56px;line-height:1;color:'+(val>0?'#1a5c2e':'#d1d5db')+';">'+( val>0?val:'-')+'</div>';
+    html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:56px;line-height:1;color:'+(val>0?'#1a5c2e':'#d1d5db')+'">'+(val>0?val:'-')+'</div>';
     html+='<div style="font-size:11px;color:#9ca3af;margin-top:2px;">'+(val>0?'入力済み':'スコア未入力')+'</div>';
     html+='</div>';
     html+='<button type="button" onclick="adjustHoleScore('+h+','+i+',+1)" style="width:60px;height:60px;border:none;border-radius:12px;background:#1a5c2e;font-size:28px;font-weight:900;cursor:pointer;color:#fff;">+</button>';
-    html+='</div>';
-    html+='</div>';
+    html+='</div></div>';
   }
   container.innerHTML=html;
 }
@@ -1574,6 +1732,11 @@ function adjustHoleScore(h,pi,delta){
   var el=document.getElementById('s_'+h+'_'+pi);
   if(!el)return;
   var cur=parseInt(el.value)||0;
+  // 未入力の場合はParをベースに
+  if(cur===0){
+    var par=parseInt(document.getElementById('par_'+h)?.value)||0;
+    cur=par||0;
+  }
   var newVal=Math.max(1,Math.min(20,cur+delta));
   el.value=newVal;
   updPt(h,pi);
@@ -1607,7 +1770,136 @@ function nextHole(){
   if(idx<17)showHole(rounds[idx+1]);
 }
 
-// ===== Canvas共有 =====
+function showFinalTally(){
+  var div=document.getElementById('finalTally');
+  if(!div)return;
+  if(div.style.display==='block'){div.style.display='none';return;}
+
+  var players=[0,1,2,3].filter(function(i){return getPlayerName(i)!=='';});
+  var n=players.length;
+
+  // スタボ順位（既存のresから取得）
+  var holes=getHoleData();
+  var backNine=_startHole===1?[10,11,12,13,14,15,16,17,18]:[1,2,3,4,5,6,7,8,9];
+  var stabo=players.map(function(i){
+    var tot=0,grossTot=0,backTot=0;
+    holes.forEach(function(h){
+      var inp=document.getElementById('s_'+h.hole+'_'+i);
+      var g=parseInt(inp?.value);
+      var hs=getHS(HC[i],h.hdp);
+      if(!isNaN(g)&&g>0&&h.par>0){
+        var p=calcPt(g,h.par,hs);
+        tot+=p;grossTot+=g;
+        if(backNine.includes(h.hole))backTot+=p;
+      }
+    });
+    return{i:i,name:getPlayerName(i),tot:tot,grossTot:grossTot,backTot:backTot};
+  }).sort(function(a,b){
+    if(b.tot!==a.tot)return b.tot-a.tot;
+    if(b.backTot!==a.backTot)return b.backTot-a.backTot;
+    return a.grossTot-b.grossTot;
+  });
+
+  // スタボ点数配分
+  var staboPts=[30,10,-10,-30];
+  var staboMap={};
+  stabo.forEach(function(r,rank){staboMap[r.i]=staboPts[rank]||0;});
+
+  // オリンピック精算
+  var olympicTots={};
+  var olympicSum=0;
+  players.forEach(function(i){
+    var t=calcOlympicTotal(i);
+    olympicTots[i]=t;
+    olympicSum+=t;
+  });
+  var olympicPts={};
+  players.forEach(function(i){
+    olympicPts[i]=(olympicTots[i]*n)-olympicSum;
+  });
+
+  // ニアピン精算
+  var npCounts={};
+  players.forEach(function(i){npCounts[i]=calcNearpinCount(i);});
+  var npPts={};
+  players.forEach(function(i){
+    var earned=npCounts[i]*5*(n-1);
+    var paid=0;
+    players.forEach(function(j){if(j!==i)paid+=npCounts[j]*5;});
+    npPts[i]=earned-paid;
+  });
+
+  // ヤキトリ判定（パーが1つもない人）
+  var yakitoriPts={};
+  players.forEach(function(i){yakitoriPts[i]=0;});
+  players.forEach(function(i){
+    var hasPar=false;
+    holes.forEach(function(h){
+      var inp=document.getElementById('s_'+h.hole+'_'+i);
+      var g=parseInt(inp?.value);
+      if(!isNaN(g)&&g>0&&h.par>0&&g<=h.par)hasPar=true;
+    });
+    if(!hasPar){
+      yakitoriPts[i]-=(n-1)*5;
+      players.forEach(function(j){if(j!==i)yakitoriPts[j]+=5;});
+    }
+  });
+
+  // 合計
+  var html='<div class="card"><div class="ctit">🏆 最終集計</div>';
+  html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px;">';
+  html+='<thead><tr style="background:#1a5c2e;color:#fff;">';
+  html+='<th style="padding:8px 4px;text-align:left;">名前</th>';
+  html+='<th style="padding:8px 4px;text-align:center;">スタボ</th>';
+  html+='<th style="padding:8px 4px;text-align:center;">五輪</th>';
+  html+='<th style="padding:8px 4px;text-align:center;">ニアピン</th>';
+  html+='<th style="padding:8px 4px;text-align:center;">ヤキトリ</th>';
+  html+='<th style="padding:8px 4px;text-align:center;background:#c9a84c;color:#000;">合計</th>';
+  html+='</tr></thead><tbody>';
+
+  // 合計でソート
+  var sorted=players.slice().sort(function(a,b){
+    var ta=staboMap[a]+olympicPts[a]+npPts[a]+yakitoriPts[a];
+    var tb=staboMap[b]+olympicPts[b]+npPts[b]+yakitoriPts[b];
+    return tb-ta;
+  });
+
+  var medals=['🥇','🥈','🥉','　'];
+  sorted.forEach(function(i,rank){
+    var total=staboMap[i]+olympicPts[i]+npPts[i]+yakitoriPts[i];
+    var isPlus=total>=0;
+    html+='<tr style="background:'+(rank%2===0?'#f9fafb':'#fff')+'">';
+    html+='<td style="padding:8px 4px;font-weight:700;">'+medals[rank]+'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+COLS[i]+';margin:0 4px;"></span>'+getPlayerName(i)+'</td>';
+    html+=ptCell(staboMap[i]);
+    html+=ptCell(olympicPts[i]);
+    html+=ptCell(npPts[i]);
+    html+=ptCell(yakitoriPts[i]);
+    html+='<td style="padding:8px 4px;text-align:center;font-family:\'Bebas Neue\',sans-serif;font-size:18px;font-weight:900;color:'+(isPlus?'#065f46':'#991b1b')+';">'+(isPlus?'+':'')+total+'</td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+
+  // 明細
+  html+='<div style="margin-top:12px;font-size:11px;color:#6b7280;">';
+  html+='<div style="font-weight:700;margin-bottom:4px;">五輪 獲得点数</div>';
+  players.forEach(function(i){
+    html+='<div>'+getPlayerName(i)+'：'+olympicTots[i]+'点（精算：'+(olympicPts[i]>=0?'+':'')+olympicPts[i]+'）</div>';
+  });
+  html+='<div style="font-weight:700;margin-top:8px;margin-bottom:4px;">ニアピン 獲得回数</div>';
+  players.forEach(function(i){
+    html+='<div>'+getPlayerName(i)+'：'+npCounts[i]+'回（精算：'+(npPts[i]>=0?'+':'')+npPts[i]+'）</div>';
+  });
+  html+='</div></div>';
+
+  div.innerHTML=html;
+  div.style.display='block';
+  div.scrollIntoView({behavior:'smooth'});
+}
+
+function ptCell(v){
+  var color=v>0?'#065f46':v<0?'#991b1b':'#6b7280';
+  return '<td style="padding:8px 4px;text-align:center;font-weight:700;color:'+color+';">'+(v>0?'+':'')+v+'</td>';
+}
 async function shareResult(){
   try{
     const canvas=document.createElement('canvas');
