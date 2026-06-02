@@ -24,10 +24,8 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;}
 input.si,input.miniinp,input.psi{enterkeyhint:next;}
 input.psi:last-of-type{enterkeyhint:done;}
-.hdr{background:linear-gradient(135deg,#0284c7,#0ea5e9);padding:16px 16px 14px;text-align:center;border-bottom:3px solid #22c55e}
-.hdr h1{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#fff;letter-spacing:3px}
-.hdr p{color:#bae6fd;font-size:10px;margin-top:2px}
-.wrap{max-width:480px;margin:0 auto;padding:14px}
+.hdr{display:none !important}
+.wrap{max-width:480px;margin:0 auto;padding:8px;height:calc(100vh - 50px);overflow-y:auto;}
 .tabs{display:flex;background:#0369a1;border-radius:12px;padding:4px;margin-bottom:14px;gap:2px}
 .tab{flex:1;padding:10px 2px;border:none;border-radius:8px;font-family:inherit;font-size:10px;font-weight:700;cursor:pointer;background:transparent;color:#38bdf8;min-height:38px;touch-action:manipulation;transition:transform 0.1s,opacity 0.1s;}
 .tab:active{transform:scale(0.92);opacity:0.8;}
@@ -266,8 +264,8 @@ button:active{transform:scale(0.96);opacity:0.85;}
 
 <!-- 入力モード切替 -->
 <div style="display:flex;gap:8px;margin-bottom:12px;">
-<button type="button" onclick="setInputMode('card')" id="modeCardBtn" class="btn" style="flex:1;padding:10px;font-size:13px;background:#0284c7;color:#fff;border-radius:10px;font-weight:700;">📋 カード表示</button>
-<button type="button" onclick="setInputMode('hole')" id="modeHoleBtn" class="btn" style="flex:1;padding:10px;font-size:13px;background:#e5e7eb;color:#374151;border-radius:10px;font-weight:700;">⛳ 1ホール入力</button>
+<button type="button" onclick="setInputMode('hole')" id="modeHoleBtn" class="btn" style="flex:1;padding:10px;font-size:13px;background:#e5e7eb;color:#374151;border-radius:10px;font-weight:700;">⛳ スコア入力</button>
+<button type="button" onclick="setInputMode('card')" id="modeCardBtn" class="btn" style="flex:1;padding:10px;font-size:13px;background:#0284c7;color:#fff;border-radius:10px;font-weight:700;">📋 スコアカード</button>
 </div>
 
 <!-- カード表示 -->
@@ -546,10 +544,8 @@ function showRoute(route){
   document.getElementById('topMenu').style.display='none';
   document.getElementById('routeManual').style.display=route==='manual'?'block':'none';
   document.getElementById('routeGdo').style.display=route==='gdo'?'block':'none';
-  // ヘッダー・タブバーを表示
-  var hdr=document.querySelector('.hdr');
+  // タブバーのみ表示（ヘッダーは常に非表示）
   var tabs=document.querySelector('.tabs');
-  if(hdr)hdr.style.display='block';
   if(tabs)tabs.style.display='flex';
 }
 
@@ -557,10 +553,8 @@ function showTopMenu(){
   document.getElementById('topMenu').style.display='block';
   document.getElementById('routeManual').style.display='none';
   document.getElementById('routeGdo').style.display='none';
-  // ヘッダー・タブバーを非表示
-  var hdr=document.querySelector('.hdr');
+  // タブバーを非表示（トップはスプラッシュのみ）
   var tabs=document.querySelector('.tabs');
-  if(hdr)hdr.style.display='none';
   if(tabs)tabs.style.display='none';
 }
 
@@ -765,9 +759,7 @@ function show(n){
   if(n===1){
     showTopMenu();
   } else {
-    var hdr=document.querySelector('.hdr');
     var tabs=document.querySelector('.tabs');
-    if(hdr)hdr.style.display='block';
     if(tabs)tabs.style.display='flex';
   }
   [1,2,3,4,5,6].forEach(i=>{
@@ -823,8 +815,8 @@ function goStep3(){
     updAllPt(h);
   }
   // 写真取り込み済みの場合は1ホール入力モード、それ以外はカード表示
-  var useHoleMode=importedData!=null;
-  _inputMode=useHoleMode?'hole':'card';
+  var useHoleMode=true; // 常にスコア入力モードをデフォルトに
+  _inputMode='hole';
   var cardMode=document.getElementById('cardMode');
   var holeMode=document.getElementById('holeMode');
   var cardBtn=document.getElementById('modeCardBtn');
@@ -904,25 +896,6 @@ function applyScoreOnly(){
   }
 }
 function goStep4(){
-  // 未入力チェック
-  var missing=[];
-  var rounds=getRoundHoles();
-  var playerCount=[0,1,2,3].filter(function(i){return getPlayerName(i)!=='';}).length||1;
-  rounds.forEach(function(h){
-    for(var i=0;i<playerCount;i++){
-      var el=document.getElementById('s_'+h+'_'+i);
-      if(!el||!el.value||el.value===''){
-        missing.push(h);
-        return;
-      }
-    }
-  });
-  // 重複除去
-  missing=missing.filter(function(v,i,a){return a.indexOf(v)===i;});
-  if(missing.length>0){
-    var msg='以下のホールにスコア未入力があります：\n'+missing.join('H, ')+'H\n\nこのまま結果を見ますか？';
-    if(!confirm(msg))return;
-  }
   renderResults();
   show(4);
   window.scrollTo(0,0);
@@ -1612,7 +1585,7 @@ function calcNearpinCount(i){
 }
 
 // ===== 1ホール入力モード =====
-var _inputMode='card';
+var _inputMode='hole';
 var _currentHole=1;
 
 function setInputMode(mode){
@@ -1690,73 +1663,85 @@ function showHole(h){
   var html='';
 
   // オリンピック入力エリア
-  html+='<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid #e5e7eb;">';
+  html+='<div style="background:#fff;border-radius:12px;padding:10px;margin-bottom:10px;border:1px solid #e5e7eb;">';
   html+='<div style="font-size:12px;font-weight:900;color:#0284c7;margin-bottom:8px;">🏅 オリンピック</div>';
-  for(var i=0;i<4;i++){
-    var name=getPlayerName(i);
-    if(!name)continue;
+  // プレーヤー名ヘッダー行
+  var activePlayers=[0,1,2,3].filter(function(i){return getPlayerName(i)!=='';});
+  html+='<div style="display:grid;grid-template-columns:40px repeat('+activePlayers.length+',1fr);gap:4px;align-items:center;">';
+  html+='<div></div>';
+  activePlayers.forEach(function(i){
+    html+='<div style="display:flex;align-items:center;justify-content:center;gap:3px;">';
+    html+='<div style="width:7px;height:7px;border-radius:50%;background:'+COLS[i]+';flex-shrink:0;"></div>';
+    html+='<span style="font-size:12px;font-weight:700;">'+getPlayerName(i).substring(0,2)+'</span>';
+    html+='</div>';
+  });
+  // メダル行
+  html+='<div style="font-size:11px;color:#374151;font-weight:700;">メダル</div>';
+  activePlayers.forEach(function(i){
     var medal=getOlympicData(h,i,'medal')||'';
-    var suna=getOlympicData(h,i,'suna')||false;
-    var sao=getOlympicData(h,i,'sao')||'';
-    var birdie=getOlympicData(h,i,'birdie')||'';
-    html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">';
-    html+='<div style="width:10px;height:10px;border-radius:50%;background:'+COLS[i]+';flex-shrink:0;"></div>';
-    html+='<div style="font-size:13px;font-weight:700;color:#374151;width:60px;flex-shrink:0;">'+name+'</div>';
-    // メダルセレクト
-    html+='<select onchange="setOlympicData('+h+','+i+',\'medal\',this.value)" style="flex:1;padding:6px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;">';
+    html+='<select onchange="setOlympicData('+h+','+i+',\'medal\',this.value)" style="width:100%;padding:4px 2px;border:1.5px solid #d1d5db;border-radius:6px;font-size:11px;background:#fff;">';
     html+='<option value=""'+(medal===''?' selected':'')+'>—</option>';
-    html+='<option value="diamond"'+(medal==='diamond'?' selected':'')+'>💎ダイヤ(5)</option>';
-    html+='<option value="gold"'+(medal==='gold'?' selected':'')+'>🥇金(4)</option>';
-    html+='<option value="silver"'+(medal==='silver'?' selected':'')+'>🥈銀(3)</option>';
-    html+='<option value="bronze"'+(medal==='bronze'?' selected':'')+'>🥉銅(2)</option>';
-    html+='<option value="iron"'+(medal==='iron'?' selected':'')+'>鉄(1)</option>';
-    html+='<option value="scrap"'+(medal==='scrap'?' selected':'')+'>クズ鉄(-1)</option>';
+    html+='<option value="diamond"'+(medal==='diamond'?' selected':'')+'>💎ダイヤ</option>';
+    html+='<option value="gold"'+(medal==='gold'?' selected':'')+'>🥇金</option>';
+    html+='<option value="silver"'+(medal==='silver'?' selected':'')+'>🥈銀</option>';
+    html+='<option value="bronze"'+(medal==='bronze'?' selected':'')+'>🥉銅</option>';
+    html+='<option value="iron"'+(medal==='iron'?' selected':'')+'>鉄</option>';
+    html+='<option value="scrap"'+(medal==='scrap'?' selected':'')+'>クズ鉄</option>';
     html+='</select>';
-    // 砂1チェック
-    html+='<label style="display:flex;align-items:center;gap:2px;font-size:11px;color:#374151;flex-shrink:0;">';
-    html+='<input type="checkbox" onchange="setOlympicData('+h+','+i+',\'suna\',this.checked)"'+(suna?' checked':'')+'>砂1</label>';
-    // サオ
-    html+='<select onchange="setOlympicData('+h+','+i+',\'sao\',this.value)" style="padding:4px;border:1.5px solid #d1d5db;border-radius:6px;font-size:11px;background:#fff;flex-shrink:0;">';
-    html+='<option value=""'+(sao===''?' selected':'')+'>サオ</option>';
+  });
+  // 砂1行
+  html+='<div style="font-size:11px;color:#374151;font-weight:700;">砂1</div>';
+  activePlayers.forEach(function(i){
+    var suna=getOlympicData(h,i,'suna')||false;
+    html+='<div style="display:flex;justify-content:center;align-items:center;">';
+    html+='<input type="checkbox" onchange="setOlympicData('+h+','+i+',\'suna\',this.checked)" style="width:20px;height:20px;cursor:pointer;"'+(suna?' checked':'')+'/>';
+    html+='</div>';
+  });
+  // サオ行
+  html+='<div style="font-size:11px;color:#374151;font-weight:700;">サオ</div>';
+  activePlayers.forEach(function(i){
+    var sao=getOlympicData(h,i,'sao')||'';
+    html+='<select onchange="setOlympicData('+h+','+i+',\'sao\',this.value)" style="width:100%;padding:4px 2px;border:1.5px solid #d1d5db;border-radius:6px;font-size:11px;background:#fff;">';
+    html+='<option value=""'+(sao===''?' selected':'')+'>—</option>';
     html+='<option value="1"'+(sao==='1'?' selected':'')+'>○宣言</option>';
     html+='<option value="fail2"'+(sao==='fail2'?' selected':'')+'>×2パ</option>';
     html+='<option value="fail3"'+(sao==='fail3'?' selected':'')+'>×3パ</option>';
     html+='</select>';
-    html+='</div>';
-  }
-  // バーディー・イーグル等
-  html+='<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #e5e7eb;">';
+  });
+  html+='</div>';
+  // バーディー以上（1行4人均等）
+  html+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #e5e7eb;">';
   html+='<div style="font-size:11px;color:#6b7280;margin-bottom:4px;">バーディー以上</div>';
-  html+='<div style="display:flex;flex-wrap:wrap;gap:4px;">';
-  for(var i=0;i<4;i++){
-    var name=getPlayerName(i);
-    if(!name)continue;
+  html+='<div style="display:grid;grid-template-columns:repeat('+activePlayers.length+',1fr);gap:4px;">';
+  activePlayers.forEach(function(i){
     var birdie=getOlympicData(h,i,'birdie')||'';
-    html+='<div style="display:flex;align-items:center;gap:4px;background:#f9fafb;border-radius:8px;padding:4px 8px;">';
-    html+='<div style="width:8px;height:8px;border-radius:50%;background:'+COLS[i]+';"></div>';
-    html+='<span style="font-size:11px;font-weight:700;">'+name+'</span>';
-    html+='<select onchange="setOlympicData('+h+','+i+',\'birdie\',this.value)" style="padding:2px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;background:#fff;">';
+    html+='<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">';
+    html+='<div style="display:flex;align-items:center;gap:2px;">';
+    html+='<div style="width:6px;height:6px;border-radius:50%;background:'+COLS[i]+';"></div>';
+    html+='<span style="font-size:12px;font-weight:700;">'+getPlayerName(i).substring(0,2)+'</span>';
+    html+='</div>';
+    html+='<select onchange="setOlympicData('+h+','+i+',\'birdie\',this.value)" style="width:100%;padding:4px 2px;border:1px solid #d1d5db;border-radius:6px;font-size:10px;background:#fff;">';
     html+='<option value=""'+(birdie===''?' selected':'')+'>—</option>';
-    html+='<option value="birdie"'+(birdie==='birdie'?' selected':'')+'>バーディ+3</option>';
-    html+='<option value="eagle"'+(birdie==='eagle'?' selected':'')+'>イーグル+5</option>';
-    html+='<option value="albatross"'+(birdie==='albatross'?' selected':'')+'>アルバ+10</option>';
-    html+='<option value="holeinone"'+(birdie==='holeinone'?' selected':'')+'>HIO+10</option>';
+    html+='<option value="birdie"'+(birdie==='birdie'?' selected':'')+'>B+3</option>';
+    html+='<option value="eagle"'+(birdie==='eagle'?' selected':'')+'>E+5</option>';
+    html+='<option value="albatross"'+(birdie==='albatross'?' selected':'')+'>A+10</option>';
+    html+='<option value="holeinone"'+(birdie==='holeinone'?' selected':'')+'>HIO</option>';
     html+='</select>';
     html+='</div>';
-  }
+  });
   html+='</div></div>';
   html+='</div>';
 
   // ニアピン（Par3のみ）
   if(isShort){
-    html+='<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:12px;margin-bottom:10px;">';
+    html+='<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:10px;margin-bottom:10px;">';
     html+='<div style="font-size:12px;font-weight:900;color:#92400e;margin-bottom:8px;">📍 ニアピン（Par3）</div>';
-    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+    html+='<div style="display:flex;gap:6px;">';
     for(var i=0;i<4;i++){
       var name=getPlayerName(i);
       if(!name)continue;
       var np=getNearpin(h,i);
-      html+='<label style="display:flex;align-items:center;gap:4px;background:'+(np?'#fef3c7':'#fff')+';border:1.5px solid '+(np?'#f59e0b':'#d1d5db')+';border-radius:8px;padding:6px 10px;cursor:pointer;">';
+      html+='<label style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:'+(np?'#fef3c7':'#fff')+';border:1.5px solid '+(np?'#f59e0b':'#d1d5db')+';border-radius:8px;padding:8px 4px;cursor:pointer;">';
       html+='<input type="checkbox" onchange="setNearpin('+h+','+i+',this.checked)"'+(np?' checked':'')+'>';
       html+='<div style="width:8px;height:8px;border-radius:50%;background:'+COLS[i]+';"></div>';
       html+='<span style="font-size:13px;font-weight:700;">'+name+'</span>';
@@ -1773,6 +1758,14 @@ function showHole(h){
     if(!name)continue;
     var scoreEl=document.getElementById('s_'+h+'_'+i);
     var val=scoreEl?parseInt(scoreEl.value)||0:0;
+    // Parをデフォルト値として使用（val=0でpar>0なら自動セット）
+    if(val===0&&par>0&&scoreEl){
+      scoreEl.value=par;
+      val=par;
+      updPt(h,i);
+    }
+    var displayVal=val>0?val:'-';
+    var displayColor=val>0?'#0284c7':'#d1d5db';
     var netEl=document.getElementById('n_'+h+'_'+i);
     var net=netEl?netEl.innerHTML:'';
     var ptColor='#6b7280',ptBg='#f3f4f6';
@@ -1794,8 +1787,8 @@ function showHole(h){
     html+='<div style="display:flex;align-items:center;gap:12px;">';
     html+='<button type="button" onclick="adjustHoleScore('+h+','+i+',-1)" style="width:60px;height:60px;border:none;border-radius:12px;background:#e5e7eb;font-size:28px;font-weight:900;cursor:pointer;color:#374151;">−</button>';
     html+='<div style="flex:1;text-align:center;">';
-    html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:56px;line-height:1;color:'+(val>0?'#0284c7':'#d1d5db')+'">'+(val>0?val:'-')+'</div>';
-    html+='<div style="font-size:11px;color:#9ca3af;margin-top:2px;">'+(val>0?'入力済み':'スコア未入力')+'</div>';
+    html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:56px;line-height:1;color:'+displayColor+'">'+displayVal+'</div>';
+    html+='<div style="font-size:11px;color:#9ca3af;margin-top:2px;">'+(val>0?'入力済み':'未入力')+'</div>';
     html+='</div>';
     html+='<button type="button" onclick="adjustHoleScore('+h+','+i+',+1)" style="width:60px;height:60px;border:none;border-radius:12px;background:#0284c7;font-size:28px;font-weight:900;cursor:pointer;color:#fff;">+</button>';
     html+='</div></div>';
