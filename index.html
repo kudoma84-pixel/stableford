@@ -115,14 +115,15 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <p>ゴルフ × スコア精算アプリ</p>
 </div>
 <div class="wrap">
-<div class="tabs" style="display:none;">
-<button onclick="show(1)" class="tab on" id="t1">🏠トップ</button>
+<div class="tabs" style="display:flex;margin-top:44px;">
+<button onclick="confirmTop()" class="tab on" id="t1">🏠トップ</button>
 <button onclick="show(2)" class="tab" id="t2" style="display:none"></button>
-<button onclick="show(3)" class="tab" id="t3">📝スコア</button>
+<button onclick="showRegTab()" class="tab" id="t3">📋登録</button>
+<button onclick="showScoreTab()" class="tab" id="t8">📝スコア</button>
+<button onclick="show(7)" class="tab" id="t7">⛳コース</button>
 <button onclick="goStep4()" class="tab" id="t4">🏆結果</button>
 <button onclick="showHistory()" class="tab" id="t5">📚履歴</button>
 <button onclick="show(6)" class="tab" id="t6">❓使い方</button>
-<button onclick="updateApp()" class="tab" id="t8" style="font-size:16px;flex:0 0 44px;">🔃</button>
 </div>
 <div id="s1">
 
@@ -130,7 +131,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div id="topMenu" class="top-splash">
 <div class="top-wood"></div>
 <div class="top-btns">
-  <button type="button" onclick="showRoute('manual')" class="top-btn top-btn-gold">📝 スコアを手入力する</button>
+  <button type="button" onclick="showRoute('manual')" class="top-btn top-btn-gold">📝 スコア入力</button>
   <button type="button" onclick="showRoute('gdo')" class="top-btn top-btn-blue">📸 GDOスコアをアップする</button>
   <div style="height:10px;"></div>
   <button type="button" onclick="updateApp()" class="top-btn top-btn-silver">🔃 更新</button>
@@ -157,7 +158,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 </div>
 <div style="display:flex;gap:8px;margin-bottom:14px;">
-<button type="button" onclick="showCourseDiv()" class="btn btng" style="flex:1;font-size:13px;">⛳ コース管理</button>
+<button type="button" onclick="show(7)" class="btn btng" style="flex:1;font-size:13px;">⛳ コース管理</button>
 <button onclick="goStep3()" class="btn btnp" style="flex:2;font-size:16px;">次へ →</button>
 </div>
 </div>
@@ -217,7 +218,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
-<div id="courseDiv" style="display:none">
+<div id="s7" class="hidden">
 <div style="max-width:480px;margin:0 auto;padding:0 14px;">
 <div class="card">
 <div class="ctit">⛳ コース登録・管理</div>
@@ -245,7 +246,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div id="savedCoursesList"><div style="text-align:center;color:#9ca3af;padding:16px;font-size:13px;">登録済みコースはありません</div></div>
 </div>
 <div style="margin-bottom:14px;">
-<button type="button" onclick="hideCourseDiv()" class="btn btno" style="display:block;width:100%;">✕ 閉じる</button>
+<button type="button" onclick="showScoreTab()" class="btn btno" style="display:block;width:100%;">← 戻る</button>
 </div>
 </div>
 </div>
@@ -290,7 +291,9 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:4px;">
 <div style="text-align:center;">
 <div style="color:#7dd3fc;font-size:10px;font-weight:700;">Par</div>
-<input id="holeParInput" type="text" inputmode="numeric" pattern="[0-9]*" style="width:52px;padding:6px;border:none;border-radius:8px;font-size:18px;font-weight:900;text-align:center;background:rgba(255,255,255,0.15);color:#fff;" oninput="syncHoleParHdp()">
+<input id="holeParInput" type="text" inputmode="numeric" pattern="[0-9]*" style="width:52px;padding:6px;border:none;border-radius:8px;font-size:18px;font-weight:900;text-align:center;background:rgba(255,255,255,0.15);color:#fff;"
+  onkeydown="if(!/^[0-9]$/.test(event.key)&&!['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(event.key)){event.preventDefault();return;}if(this.value.length>=1&&/^[0-9]$/.test(event.key)&&this.selectionStart===this.selectionEnd&&this.selectionStart===1){event.preventDefault();return;}"
+  oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,1);syncHoleParHdp();if(this.value.length===1){setTimeout(function(){document.getElementById('holeHdpInput').focus();document.getElementById('holeHdpInput').select();},50);}">
 </div>
 <div style="text-align:center;">
 <div style="color:#7dd3fc;font-size:10px;font-weight:700;">HDP</div>
@@ -310,7 +313,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 
 <div style="display:flex;gap:10px;margin-bottom:14px">
-<button onclick="show(1)" class="btn btno" style="flex:1">← 戻る</button>
+<button onclick="showRegTab()" class="btn btno" style="flex:1">← 戻る</button>
 <button onclick="goStep4()" class="btn btng" style="flex:2">🏆 結果を見る →</button>
 </div>
 </div>
@@ -325,8 +328,8 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <button type="button" onclick="showFinalTally()" class="btn" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:900;">🏆 最終集計（スタボ＋五輪＋ニアピン）</button>
 <div id="finalTally" style="display:none;margin-bottom:10px;"></div>
 <button type="button" onclick="saveRound()" class="btn btng" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">💾 このラウンドを保存</button>
-<button type="button" onclick="show(3)" class="btn" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5;background:transparent;border:2px solid #fff;color:#fff;">← スコア修正</button>
-<button type="button" onclick="show(3)" class="btn" style="display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#6b7280,#4b5563);color:#fff;font-weight:900;">← スコア画面に戻る</button>
+<button type="button" onclick="showScoreTab()" class="btn" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5;background:transparent;border:2px solid #fff;color:#fff;">← スコア修正</button>
+<button type="button" onclick="showScoreTab()" class="btn" style="display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#6b7280,#4b5563);color:#fff;font-weight:900;">← スコア画面に戻る</button>
 </div>
 </div>
 
@@ -337,7 +340,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div id="histList"></div>
 </div>
 <div style="margin-bottom:40px">
-<button type="button" onclick="show(1)" class="btn btnp" style="display:block;width:100%">← トップに戻る</button>
+<button type="button" onclick="confirmTop()" class="btn btnp" style="display:block;width:100%">🏠 トップに戻る</button>
 </div>
 </div>
 
@@ -489,7 +492,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 
 </div><!-- card end -->
 <div style="margin-bottom:40px">
-<button type="button" onclick="show(1)" class="btn btnp" style="display:block;width:100%">← トップに戻る</button>
+<button type="button" onclick="confirmTop()" class="btn btnp" style="display:block;width:100%">🏠 トップに戻る</button>
 </div>
 </div>
 </div>
@@ -544,13 +547,69 @@ function calcHC(){
   else{const mn=Math.min(...valid);HC=t.map(x=>x>0?Math.min(x-mn,36):0);}
 }
 
+function confirmTop(){
+  showConfirmDialog('トップに戻ると現在のラウンドデータがリセットされます。\nよろしいですか？', function(){
+    try{ doResetAll(); }catch(e){ show(1); showTopMenu(); }
+  });
+}
+
+function showRegTab(){
+  var topMenu=document.getElementById('topMenu');
+  var routeManual=document.getElementById('routeManual');
+  var routeGdo=document.getElementById('routeGdo');
+  if(topMenu)topMenu.style.display='none';
+  if(routeManual)routeManual.style.display='block';
+  if(routeGdo)routeGdo.style.display='none';
+  // s1はblockのまま（routeManualの親）、他のsページを非表示
+  [2,3,4,5,6,7,8].forEach(function(i){
+    var el=document.getElementById('s'+i);
+    if(el){el.style.display='none';el.classList.add('hidden');}
+  });
+  var s1=document.getElementById('s1');
+  if(s1){s1.style.display='block';}
+  var tabs=document.querySelector('.tabs');
+  if(tabs)tabs.style.display='flex';
+  [1,2,3,4,5,6,7,8].forEach(function(i){
+    var t=document.getElementById('t'+i);
+    if(t)t.classList.toggle('on',i===3);
+  });
+  window.scrollTo(0,0);
+}
+
+function showScoreTab(){
+  var topMenu=document.getElementById('topMenu');
+  var routeManual=document.getElementById('routeManual');
+  var routeGdo=document.getElementById('routeGdo');
+  if(topMenu)topMenu.style.display='none';
+  if(routeManual)routeManual.style.display='none';
+  if(routeGdo)routeGdo.style.display='none';
+  var tabs=document.querySelector('.tabs');
+  if(tabs)tabs.style.display='flex';
+  // s3を表示、s1以外のsページを非表示
+  [2,3,4,5,6,7,8].forEach(function(i){
+    var el=document.getElementById('s'+i);
+    if(el){
+      if(i===3){el.style.display='block';el.classList.remove('hidden');}
+      else{el.style.display='none';el.classList.add('hidden');}
+    }
+    var t=document.getElementById('t'+i);
+    if(t)t.classList.toggle('on',i===8);
+  });
+  var t1=document.getElementById('t1');
+  if(t1)t1.classList.remove('on');
+  window.scrollTo(0,0);
+}
+
 function showRoute(route){
   document.getElementById('topMenu').style.display='none';
   document.getElementById('routeManual').style.display=route==='manual'?'block':'none';
   document.getElementById('routeGdo').style.display=route==='gdo'?'block':'none';
-  // タブバーのみ表示（ヘッダーは常に非表示）
   var tabs=document.querySelector('.tabs');
   if(tabs)tabs.style.display='flex';
+  [1,2,3,4,5,6,7,8].forEach(function(i){
+    var t=document.getElementById('t'+i);
+    if(t)t.classList.toggle('on',i===3);
+  });
 }
 
 function showTopMenu(){
@@ -610,10 +669,7 @@ function buildNine(id,start,end){
   for(let h=start;h<=end;h++){
     const inp=activePlayers.map(i=>`<div class="scwrap"><span class="hcmark" id="m_${h}_${i}" style="display:none"></span><input class="si" id="s_${h}_${i}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="1" max="15" placeholder="-" oninput="updPt(${h},${i});autoNext('s_${h}_${i}')"><div class="netshow" id="n_${h}_${i}"></div></div>`).join('');
     html+=`<div class="hg"><div class="hno">${h}</div><input class="miniinp" id="par_${h}" type="text" inputmode="numeric" enterkeyhint="next" placeholder="P"
-      onpaste="event.preventDefault();"
-      oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1){this.value='';setParDefault(${h});updAllPt(${h});return;}setParDefault(${h});updAllPt(${h});autoNext('par_${h}');"
     ><input class="miniinp" id="hdp_${h}" type="text" inputmode="numeric" enterkeyhint="next" placeholder="H"
-      onpaste="event.preventDefault();"
       oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2);refreshHdpMarks(${h});updAllPt(${h});autoNext('hdp_${h}');"
     >${inp}</div>`;
   }
@@ -621,6 +677,30 @@ function buildNine(id,start,end){
   const tc=activePlayers.map(i=>`<div class="tc" id="${pfx}p_${i}">-</div>`).join('');
   html+=`<div class="trow"><div class="tl">小計</div>${tc}</div>`;
   $(id).innerHTML=html;
+  // Par欄：keydownで2文字目をブロック＋入力でHD欄へフォーカス移動
+  for(let h=start;h<=end;h++){
+    (function(hh){
+      var parEl=document.getElementById('par_'+hh);
+      var hdpEl=document.getElementById('hdp_'+hh);
+      if(parEl&&hdpEl){
+        parEl.addEventListener('keydown',function(e){
+          var allow=['Backspace','Delete','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'];
+          if(allow.indexOf(e.key)>=0)return;
+          if(this.value.length>=1){e.preventDefault();return false;}
+          if(!/^[0-9]$/.test(e.key)){e.preventDefault();return false;}
+        });
+        parEl.addEventListener('input',function(){
+          this.value=this.value.replace(/[^0-9]/g,'').slice(0,1);
+          if(this.value.length===1){
+            setParDefault(hh);
+            updAllPt(hh);
+            hdpEl.focus();
+            hdpEl.select();
+          }
+        });
+      }
+    })(h);
+  }
 }
 
 function getHS(hc,hdp){
@@ -641,9 +721,21 @@ function calcPt(g,par,hs){
 }
 
 function setParDefault(h){
-  var par=parseInt(document.getElementById('par_'+h)?.value);
+  var el=document.getElementById('par_'+h);
+  if(!el)return;
+  el.value=el.value.replace(/[^0-9]/g,'');
+  if(el.value.length>1){
+    el.value='';
+    [0,1,2,3].forEach(function(i){
+      if(!getPlayerName(i))return;
+      var se=document.getElementById('s_'+h+'_'+i);
+      if(se)se.value='';
+    });
+    updAllPt(h);
+    return;
+  }
+  var par=parseInt(el.value);
   if(!par)return;
-  // Par変更時は常にスコアをParで上書き
   [0,1,2,3].forEach(function(i){
     if(!getPlayerName(i))return;
     var se=document.getElementById('s_'+h+'_'+i);
@@ -765,6 +857,11 @@ function show(n){
   // コースDivを閉じる
   var cd=document.getElementById('courseDiv');
   if(cd)cd.style.display='none';
+  // routeManual/routeGdoを非表示
+  var rm=document.getElementById('routeManual');
+  var rg=document.getElementById('routeGdo');
+  if(rm)rm.style.display='none';
+  if(rg)rg.style.display='none';
   // トップページ(n=1)の場合はスプラッシュを表示してヘッダー・タブを非表示
   if(n===1){
     showTopMenu();
@@ -772,14 +869,15 @@ function show(n){
     var tabs=document.querySelector('.tabs');
     if(tabs)tabs.style.display='flex';
   }
-  [1,2,3,4,5,6].forEach(i=>{
+  [1,2,3,4,5,6,7,8].forEach(i=>{
     const el=$('s'+i);
     const tab=$('t'+i);
     if(el){
       if(i===n){
         el.style.display='block';
         el.classList.remove('hidden');
-      } else {
+      } else if(i!==1){
+        // s1はrouteManual/topMenuの親なので非表示にしない
         el.style.display='none';
         el.classList.add('hidden');
       }
@@ -846,6 +944,11 @@ function goStep3(){
     if(holeBtn){holeBtn.style.background='#e5e7eb';holeBtn.style.color='#374151';}
   }
   show(3);
+  // スコアタブをアクティブに
+  [1,2,3,4,5,6,7,8].forEach(function(i){
+    var t=document.getElementById('t'+i);
+    if(t)t.classList.toggle('on',i===8);
+  });
   window.scrollTo(0,0);
 }
 
@@ -910,7 +1013,7 @@ function goStep4(){
   show(4);
   window.scrollTo(0,0);
 }
-function backToScore(){show(3);window.scrollTo(0,0);}
+function backToScore(){showScoreTab();window.scrollTo(0,0);}
 
 function resetAll(){
   doResetAll();
