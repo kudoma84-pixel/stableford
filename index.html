@@ -115,7 +115,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <p>ゴルフ × スコア精算アプリ</p>
 </div>
 <div class="wrap">
-<div class="tabs" style="display:flex;margin-top:44px;">
+<div class="tabs" style="display:none;">
 <button onclick="confirmTop()" class="tab on" id="t1">🏠トップ</button>
 <button onclick="show(2)" class="tab" id="t2" style="display:none"></button>
 <button onclick="showRegTab()" class="tab" id="t3">📋登録</button>
@@ -2360,7 +2360,7 @@ async function shareResult(){
       }
     },'image/png');
   }catch(e){
-    alert('共有エラー: '+e.message);
+    showConfirmDialog('共有エラー: '+e.message, function(){});
   }
 }
 
