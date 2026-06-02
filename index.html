@@ -1877,8 +1877,8 @@ function showHole(h){
     if(!name)continue;
     var scoreEl=document.getElementById('s_'+h+'_'+i);
     var val=scoreEl?parseInt(scoreEl.value)||0:0;
-    // Parをデフォルト値として使用（常にParでセット）
-    if(par>0&&scoreEl){
+    // 未入力の場合のみParをデフォルトにセット
+    if(val===0&&par>0&&scoreEl){
       scoreEl.value=par;
       val=par;
       updPt(h,i);
