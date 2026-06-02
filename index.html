@@ -2273,9 +2273,17 @@ async function shareResult(){
     // 集計データ収集
     var fplayers=[0,1,2,3].filter(function(i){return getPlayerName(i)!=='';});
     var fn=fplayers.length;
-    var fstabo=stabo; // 既に計算済み
+    // staboを自前計算
+    var fstabo=fplayers.map(function(i){
+      return{i:i,tot:players.find(function(p){return p.col===COLS[i];})||{tot:0}};
+    });
+    // playersはすでにtotでソート済みなのでindexを使う
+    var fstaboSorted=players.slice();
     var fstaboMap={};
-    fstabo.forEach(function(r,rank){fstaboMap[r.i]=[30,10,-10,-30][rank]||0;});
+    fstaboSorted.forEach(function(r,rank){
+      var idx=[0,1,2,3].find(function(i){return getPlayerName(i)===r.name;});
+      if(idx!==undefined)fstaboMap[idx]=[30,10,-10,-30][rank]||0;
+    });
     var folympicTots={},folympicSum=0;
     fplayers.forEach(function(i){var t=calcOlympicTotal(i);folympicTots[i]=t;folympicSum+=t;});
     var folympicPts={};
