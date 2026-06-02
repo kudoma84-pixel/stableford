@@ -53,6 +53,8 @@ input{font-family:inherit}
 .hg.hd{font-size:9px;font-weight:700;color:#6b7280;text-align:center}
 .hno{font-size:11px;font-weight:700;color:#0284c7;text-align:center}
 .miniinp{width:100%;height:38px;border:1.5px solid #d1d5db;border-radius:5px;text-align:center;font-size:14px;font-weight:700;background:#fff;-webkit-appearance:none;touch-action:manipulation}
+.miniinp::-webkit-inner-spin-button,.miniinp::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.miniinp[type=number]{-moz-appearance:textfield}
 .miniinp:focus{outline:none;border-color:#0284c7;background:#e0f2fe}
 .si{width:100%;height:38px;border:1.5px solid #d1d5db;border-radius:5px;text-align:center;font-size:15px;font-weight:700;background:#fff;-webkit-appearance:none;touch-action:manipulation}
 .si:focus{outline:none;border-color:#0284c7;background:#e0f2fe}
@@ -324,7 +326,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div id="finalTally" style="display:none;margin-bottom:10px;"></div>
 <button type="button" onclick="saveRound()" class="btn btng" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5">💾 このラウンドを保存</button>
 <button type="button" onclick="show(3)" class="btn" style="margin-bottom:10px;display:block;width:100%;position:relative;z-index:5;background:transparent;border:2px solid #fff;color:#fff;">← スコア修正</button>
-<button type="button" onclick="resetAll()" class="btn btnp" style="display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 12px rgba(29,78,216,0.3);color:#fff">🔄 新しいラウンドを始める</button>
+<button type="button" onclick="show(3)" class="btn" style="display:block;width:100%;position:relative;z-index:5;background:linear-gradient(135deg,#6b7280,#4b5563);color:#fff;font-weight:900;">← スコア画面に戻る</button>
 </div>
 </div>
 
@@ -607,7 +609,13 @@ function buildNine(id,start,end){
   let html=`<div class="hg hd"><div>H</div><div>Par</div><div>HDP</div>${phdr}</div>`;
   for(let h=start;h<=end;h++){
     const inp=activePlayers.map(i=>`<div class="scwrap"><span class="hcmark" id="m_${h}_${i}" style="display:none"></span><input class="si" id="s_${h}_${i}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="1" max="15" placeholder="-" oninput="updPt(${h},${i});autoNext('s_${h}_${i}')"><div class="netshow" id="n_${h}_${i}"></div></div>`).join('');
-    html+=`<div class="hg"><div class="hno">${h}</div><input class="miniinp" id="par_${h}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="3" max="6" placeholder="P" oninput="setParDefault(${h});updAllPt(${h});autoNext('par_${h}')"><input class="miniinp" id="hdp_${h}" type="text" inputmode="decimal" pattern="[0-9]*" enterkeyhint="next" min="1" max="18" placeholder="H" oninput="refreshHdpMarks(${h});updAllPt(${h});autoNext('hdp_${h}')">${inp}</div>`;
+    html+=`<div class="hg"><div class="hno">${h}</div><input class="miniinp" id="par_${h}" type="text" inputmode="numeric" enterkeyhint="next" placeholder="P"
+      onpaste="event.preventDefault();"
+      oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1){this.value='';setParDefault(${h});updAllPt(${h});return;}setParDefault(${h});updAllPt(${h});autoNext('par_${h}');"
+    ><input class="miniinp" id="hdp_${h}" type="text" inputmode="numeric" enterkeyhint="next" placeholder="H"
+      onpaste="event.preventDefault();"
+      oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2);refreshHdpMarks(${h});updAllPt(${h});autoNext('hdp_${h}');"
+    >${inp}</div>`;
   }
   const pfx=start===1?'f':'b';
   const tc=activePlayers.map(i=>`<div class="tc" id="${pfx}p_${i}">-</div>`).join('');
@@ -635,11 +643,11 @@ function calcPt(g,par,hs){
 function setParDefault(h){
   var par=parseInt(document.getElementById('par_'+h)?.value);
   if(!par)return;
-  // スコアが未入力のプレーヤーにParをセット
+  // Par変更時は常にスコアをParで上書き
   [0,1,2,3].forEach(function(i){
     if(!getPlayerName(i))return;
     var se=document.getElementById('s_'+h+'_'+i);
-    if(se&&!se.value)se.value=par;
+    if(se)se.value=par;
   });
 }
 
@@ -1681,7 +1689,7 @@ function showHole(h){
   html+='<div style="font-size:11px;color:#374151;font-weight:700;">メダル</div>';
   activePlayers.forEach(function(i){
     var medal=getOlympicData(h,i,'medal')||'';
-    html+='<select onchange="setOlympicData('+h+','+i+',\'medal\',this.value)" style="width:100%;padding:4px 2px;border:1.5px solid #d1d5db;border-radius:6px;font-size:11px;background:#fff;">';
+    html+='<select onchange="setOlympicData('+h+','+i+',\'medal\',this.value)" style="width:100%;padding:8px 4px;border:1.5px solid #d1d5db;border-radius:8px;font-size:12px;background:#fff;">';
     html+='<option value=""'+(medal===''?' selected':'')+'>—</option>';
     html+='<option value="diamond"'+(medal==='diamond'?' selected':'')+'>💎ダイヤ</option>';
     html+='<option value="gold"'+(medal==='gold'?' selected':'')+'>🥇金</option>';
@@ -1696,14 +1704,14 @@ function showHole(h){
   activePlayers.forEach(function(i){
     var suna=getOlympicData(h,i,'suna')||false;
     html+='<div style="display:flex;justify-content:center;align-items:center;">';
-    html+='<input type="checkbox" onchange="setOlympicData('+h+','+i+',\'suna\',this.checked)" style="width:20px;height:20px;cursor:pointer;"'+(suna?' checked':'')+'/>';
+    html+='<input type="checkbox" onchange="setOlympicData('+h+','+i+',\'suna\',this.checked)" style="width:22px;height:22px;cursor:pointer;"'+(suna?' checked':'')+'/>';
     html+='</div>';
   });
   // サオ行
   html+='<div style="font-size:11px;color:#374151;font-weight:700;">サオ</div>';
   activePlayers.forEach(function(i){
     var sao=getOlympicData(h,i,'sao')||'';
-    html+='<select onchange="setOlympicData('+h+','+i+',\'sao\',this.value)" style="width:100%;padding:4px 2px;border:1.5px solid #d1d5db;border-radius:6px;font-size:11px;background:#fff;">';
+    html+='<select onchange="setOlympicData('+h+','+i+',\'sao\',this.value)" style="width:100%;padding:8px 4px;border:1.5px solid #d1d5db;border-radius:8px;font-size:12px;background:#fff;">';
     html+='<option value=""'+(sao===''?' selected':'')+'>—</option>';
     html+='<option value="1"'+(sao==='1'?' selected':'')+'>○宣言</option>';
     html+='<option value="fail2"'+(sao==='fail2'?' selected':'')+'>×2パ</option>';
@@ -1722,7 +1730,7 @@ function showHole(h){
     html+='<div style="width:6px;height:6px;border-radius:50%;background:'+COLS[i]+';"></div>';
     html+='<span style="font-size:12px;font-weight:700;">'+getPlayerName(i).substring(0,2)+'</span>';
     html+='</div>';
-    html+='<select onchange="setOlympicData('+h+','+i+',\'birdie\',this.value)" style="width:100%;padding:4px 2px;border:1px solid #d1d5db;border-radius:6px;font-size:10px;background:#fff;">';
+    html+='<select onchange="setOlympicData('+h+','+i+',\'birdie\',this.value)" style="width:100%;padding:8px 4px;border:1.5px solid #d1d5db;border-radius:8px;font-size:12px;background:#fff;">';
     html+='<option value=""'+(birdie===''?' selected':'')+'>—</option>';
     html+='<option value="birdie"'+(birdie==='birdie'?' selected':'')+'>B+3</option>';
     html+='<option value="eagle"'+(birdie==='eagle'?' selected':'')+'>E+5</option>';
@@ -1760,8 +1768,8 @@ function showHole(h){
     if(!name)continue;
     var scoreEl=document.getElementById('s_'+h+'_'+i);
     var val=scoreEl?parseInt(scoreEl.value)||0:0;
-    // Parをデフォルト値として使用（val=0でpar>0なら自動セット）
-    if(val===0&&par>0&&scoreEl){
+    // Parをデフォルト値として使用（常にParでセット）
+    if(par>0&&scoreEl){
       scoreEl.value=par;
       val=par;
       updPt(h,i);
