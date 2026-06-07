@@ -2935,6 +2935,8 @@ function autoSave(){
         if(el)data.holes[h]['s'+i]=el.value;
       }
     }
+    data.gameFlags=_gameFlags;
+    data.newPeriaHoles=_newPeriaHoles;
     localStorage.setItem('sf_autosave',JSON.stringify(data));
     localStorage.setItem('sf_autosave_time',Date.now());
   }catch(e){}
@@ -2993,6 +2995,9 @@ function restoreAutoSave(data){
     refreshHdpMarks(h);
     updAllPt(h);
   }
+  // gameFlags/newPeriaHoles復元
+  if(data.gameFlags)_gameFlags=data.gameFlags;
+  if(data.newPeriaHoles)_newPeriaHoles=data.newPeriaHoles;
   show(1);
   alert('データを復元しました！\nスコアページで続きを入力してください。');
 }
