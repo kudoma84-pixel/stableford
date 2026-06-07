@@ -1060,7 +1060,7 @@ function saveRound(){
   });
   
   const record={
-    id:Date.now(),
+    id:Date.now()+'_'+Math.random().toString(36).slice(2,7),
     date:new Date().toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
     courseName:courseName||'(無名コース)',
     results:res,
@@ -1097,14 +1097,14 @@ function renderHistory(){
           <div style="font-size:11px;color:#374151;margin-top:4px">${top?'🥇 '+top.name+' '+top.tot+'pt':''}</div>
         </div>
         <div id="btns_${r.id}" style="display:flex;gap:8px">
-          <button type="button" onclick="loadRound(${r.id})" style="flex:1;background:#0284c7;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">📊 表示</button>
-          <button type="button" onclick="deleteRound(${r.id})" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">🗑 削除</button>
+          <button type="button" onclick="loadRound('${r.id}')" style="flex:1;background:#0284c7;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">📊 表示</button>
+          <button type="button" onclick="deleteRound('${r.id}')" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:16px;font-weight:700;cursor:pointer;min-height:44px">🗑 削除</button>
         </div>
         <div id="confirmId_${r.id}" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#dc2626;font-weight:700;text-align:center;">
           本当に削除しますか？
           <div style="display:flex;gap:8px;margin-top:8px">
-            <button onclick="doDeleteRound(${r.id})" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px">削除する</button>
-            <button onclick="cancelDelete(${r.id})" style="flex:1;background:#fff;border:2px solid #6b7280;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;color:#374151">キャンセル</button>
+            <button onclick="doDeleteRound('${r.id}')" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px">削除する</button>
+            <button onclick="cancelDelete('${r.id}')" style="flex:1;background:#fff;border:2px solid #6b7280;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px;color:#374151">キャンセル</button>
           </div>
         </div>
       </div>`;
@@ -1116,7 +1116,7 @@ function renderHistory(){
 
 function loadRound(id){
   const saved=JSON.parse(localStorage.getItem('stableford_history')||'[]');
-  const r=saved.find(x=>x.id===id);
+  const r=saved.find(x=>String(x.id)===String(id));
   if(!r)return;
   // 結果画面に表示
   courseName=r.courseName;
@@ -1142,7 +1142,7 @@ function deleteRound(id){
 
 function doDeleteRound(id){
   const saved=JSON.parse(localStorage.getItem('stableford_history')||'[]');
-  const filtered=saved.filter(x=>x.id!==id);
+  const filtered=saved.filter(x=>String(x.id)!==String(id));
   localStorage.setItem('stableford_history',JSON.stringify(filtered));
   renderHistory();
   show(5);
