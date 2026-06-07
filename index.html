@@ -160,8 +160,42 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 <div style="display:flex;gap:8px;margin-bottom:14px;">
 <button type="button" onclick="show(7)" class="btn btng" style="flex:1;font-size:13px;">⛳ コース管理</button>
-<button onclick="goStep3()" class="btn btnp" style="flex:2;font-size:16px;">次へ →</button>
+<button onclick="showGameSelect()" class="btn btnp" style="flex:2;font-size:16px;">次へ →</button>
 </div>
+</div>
+
+<!-- ゲーム選択モーダル -->
+<div id="gameSelectModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000;overflow-y:auto;">
+  <div style="max-width:480px;margin:40px auto 20px;background:#fff;border-radius:16px;padding:20px;">
+    <div style="font-size:16px;font-weight:900;color:#0284c7;margin-bottom:16px;text-align:center;">🎮 ゲーム選択</div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:14px;text-align:center;">今回行うゲームを選択してください</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+      <label style="display:flex;align-items:center;gap:12px;background:#f0f9ff;border:2px solid #bae6fd;border-radius:10px;padding:12px;cursor:pointer;">
+        <input type="checkbox" id="gs_stabo" style="width:22px;height:22px;cursor:pointer;">
+        <div><div style="font-weight:900;font-size:14px;">🏆 スタボ</div><div style="font-size:11px;color:#6b7280;">スタブルフォード方式の順位精算</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:12px;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:10px;padding:12px;cursor:pointer;">
+        <input type="checkbox" id="gs_newperia" style="width:22px;height:22px;cursor:pointer;">
+        <div><div style="font-weight:900;font-size:14px;">🎯 新ペリア</div><div style="font-size:11px;color:#6b7280;">隠しホール12本でハンディ自動計算</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:12px;background:#fefce8;border:2px solid #fef08a;border-radius:10px;padding:12px;cursor:pointer;">
+        <input type="checkbox" id="gs_olympic" style="width:22px;height:22px;cursor:pointer;">
+        <div><div style="font-weight:900;font-size:14px;">🥇 オリンピック</div><div style="font-size:11px;color:#6b7280;">ホール別の五輪精算</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:12px;background:#fff7ed;border:2px solid #fed7aa;border-radius:10px;padding:12px;cursor:pointer;">
+        <input type="checkbox" id="gs_nearpin" style="width:22px;height:22px;cursor:pointer;">
+        <div><div style="font-weight:900;font-size:14px;">📍 ニアピン</div><div style="font-size:11px;color:#6b7280;">パー3のニアピン精算</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:12px;background:#fdf2f8;border:2px solid #f5d0fe;border-radius:10px;padding:12px;cursor:pointer;">
+        <input type="checkbox" id="gs_yakitori" style="width:22px;height:22px;cursor:pointer;">
+        <div><div style="font-weight:900;font-size:14px;">🍗 やきとり</div><div style="font-size:11px;color:#6b7280;">パーなしペナルティ</div></div>
+      </label>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button type="button" onclick="closeGameSelect()" class="btn" style="flex:1;background:#e5e7eb;color:#374151;">← 戻る</button>
+      <button type="button" onclick="confirmGameSelect()" class="btn btnp" style="flex:2;font-size:16px;">スタート 🏌️</button>
+    </div>
+  </div>
 </div>
 
 <!-- GDOルート -->
@@ -871,6 +905,97 @@ function show(n){
 function goStep2(){
   goStep3();
 }
+
+function showGameSelect(){
+  // プレーヤーが1人以上いるか確認
+  var hasPlayer=false;
+  for(var i=0;i<4;i++){if(getPlayerName(i)!=='')hasPlayer=true;}
+  if(!hasPlayer){alert('プレーヤーを1人以上登録してください');return;}
+  // 現在のフラグをチェックボックスに反映
+  document.getElementById('gs_stabo').checked=_gameFlags.stabo;
+  document.getElementById('gs_newperia').checked=_gameFlags.newperia;
+  document.getElementById('gs_olympic').checked=_gameFlags.olympic;
+  document.getElementById('gs_nearpin').checked=_gameFlags.nearpin;
+  document.getElementById('gs_yakitori').checked=_gameFlags.yakitori;
+  document.getElementById('gameSelectModal').style.display='block';
+}
+
+function closeGameSelect(){
+  document.getElementById('gameSelectModal').style.display='none';
+}
+
+function confirmGameSelect(){
+  _gameFlags.stabo=document.getElementById('gs_stabo').checked;
+  _gameFlags.newperia=document.getElementById('gs_newperia').checked;
+  _gameFlags.olympic=document.getElementById('gs_olympic').checked;
+  _gameFlags.nearpin=document.getElementById('gs_nearpin').checked;
+  _gameFlags.yakitori=document.getElementById('gs_yakitori').checked;
+  // 新ペリアONなら隠しホールを選出
+  if(_gameFlags.newperia){
+    _newPeriaHoles=selectNewPeriaHoles();
+  }
+  closeGameSelect();
+  goStep3();
+}
+
+function selectNewPeriaHoles(){
+  // Par情報はコース登録から取得、なければ仮定(1-4:P4,5:P3,6-12:P4,13:P3,14:P4,15:P5,16:P3,17:P4,18:P5想定)
+  // 実際はgetHoleData()でPar取得(まだスコア未入力なのでコース登録データから)
+  var sc=getSelectedCourse();
+  var parMap={};
+  if(sc&&sc.holes){
+    sc.holes.forEach(function(h){parMap[h.hole]=h.par;});
+  }
+  // コース登録なければ標準的なPar配分を仮定
+  var defaultPars={1:4,2:4,3:4,4:3,5:4,6:4,7:3,8:4,9:5,10:4,11:4,12:4,13:3,14:4,15:4,16:3,17:4,18:5};
+  var holes=[];
+  for(var h=1;h<=18;h++){
+    holes.push({hole:h,par:parMap[h]||defaultPars[h]||4});
+  }
+  // アウト(1-9)・イン(10-18)をそれぞれ処理
+  var out=holes.slice(0,9);
+  var inn=holes.slice(9,18);
+  // スタートが10番の場合は入れ替え
+  if(_startHole===10){var tmp=out;out=inn;inn=tmp;}
+
+  function pickHalf(hList){
+    // パー合計24になるように6本選ぶ
+    // パー3×1、パー4×4、パー5×1
+    var p3=hList.filter(function(h){return h.par===3;});
+    var p4=hList.filter(function(h){return h.par===4;});
+    var p5=hList.filter(function(h){return h.par===5;});
+    var chosen=[];
+    // パー3から1本ランダム
+    if(p3.length>0){
+      chosen.push(p3[Math.floor(Math.random()*p3.length)]);
+    }
+    // パー5から1本ランダム
+    if(p5.length>0){
+      chosen.push(p5[Math.floor(Math.random()*p5.length)]);
+    }
+    // パー4から4本ランダム（足りなければ他parで補完）
+    var needed=6-chosen.length;
+    var usedHoles=chosen.map(function(h){return h.hole;});
+    var remaining=hList.filter(function(h){return usedHoles.indexOf(h.hole)===-1;});
+    // シャッフル
+    for(var i=remaining.length-1;i>0;i--){
+      var j=Math.floor(Math.random()*(i+1));
+      var tmp=remaining[i];remaining[i]=remaining[j];remaining[j]=tmp;
+    }
+    // パー4優先で残りを埋める
+    var p4rem=remaining.filter(function(h){return h.par===4;});
+    var others=remaining.filter(function(h){return h.par!==4;});
+    var fill=p4rem.slice(0,needed);
+    if(fill.length<needed)fill=fill.concat(others.slice(0,needed-fill.length));
+    return chosen.concat(fill);
+  }
+
+  var outPicks=pickHalf(out);
+  var inPicks=pickHalf(inn);
+  var result=outPicks.concat(inPicks).map(function(h){return h.hole;});
+  result.sort(function(a,b){return a-b;});
+  return result;
+}
 function goStep3(){
   courseName=$('cname').value.trim();
   // 既存のスコアデータを保存
@@ -1031,6 +1156,8 @@ function doResetAll(){
   if($('dt'))$('dt').innerHTML='';
   HC=[0,0,0,0];
   NS=['Aさん','Bさん','Cさん','Dさん'];
+  _newPeriaHoles=[];
+  _gameFlags={stabo:false,newperia:false,olympic:false,nearpin:false,yakitori:false};
   localStorage.removeItem('sf_selected');
   localStorage.removeItem('sf_autosave');
   localStorage.removeItem('sf_autosave_time');
@@ -1621,6 +1748,11 @@ function getRoundIndex(h){
 }
 
 // ===== オリンピック・ニアピンデータ管理 =====
+// ゲーム選択フラグ
+var _gameFlags={stabo:false,newperia:false,olympic:false,nearpin:false,yakitori:false};
+// 新ペリア隠しホール
+var _newPeriaHoles=[];
+
 var _olympicData={};  // {h_i: {medal, suna, sao, birdie}}
 var _nearpinData={};  // {h_i: bool}
 var _yakitoriData={}; // {i: bool} ラウンド終了後に自動判定
@@ -2046,22 +2178,66 @@ function showFinalTally(){
     }
   });
 
-  // 合計
+  // 新ペリア計算
+  var newPeriaPts={};
+  players.forEach(function(i){newPeriaPts[i]=0;});
+  if(_gameFlags.newperia&&_newPeriaHoles.length>0){
+    // 各プレーヤーの隠しホールスコア合計
+    var periaTots=players.map(function(i){
+      var sum=0;
+      _newPeriaHoles.forEach(function(h){
+        var inp=document.getElementById('s_'+h+'_'+i);
+        var g=parseInt(inp?inp.value:'');
+        // ダブルパーカット
+        var hd=holes.find(function(hh){return hh.hole===h;});
+        var maxScore=hd?(hd.par*2):99;
+        if(!isNaN(g)&&g>0)sum+=Math.min(g,maxScore);
+      });
+      return{i:i,sum:sum};
+    });
+    // ハンディ計算: (合計×1.5 - 72)×0.8、上限36
+    var courseParTotal=72;
+    var newPeriaHc={};
+    periaTots.forEach(function(r){
+      var hc=Math.min(36,Math.round((r.sum*1.5-courseParTotal)*0.8*10)/10);
+      newPeriaHc[r.i]=hc;
+    });
+    // ネットスコア = グロス - ハンディ（小さい方が上位）
+    var periaNet=players.map(function(i){
+      var gross=0;
+      holes.forEach(function(h){
+        var inp=document.getElementById('s_'+h.hole+'_'+i);
+        var g=parseInt(inp?inp.value:'');
+        if(!isNaN(g)&&g>0)gross+=g;
+      });
+      return{i:i,gross:gross,hc:newPeriaHc[i],net:gross-newPeriaHc[i]};
+    }).sort(function(a,b){
+      if(a.net!==b.net)return a.net-b.net;
+      return a.gross-b.gross;
+    });
+    // 順位ポイント（スタポと同じ）
+    var periaPtsMap={4:[20,10,-10,-20],3:[20,0,-20],2:[20,-20]};
+    var periaPts=periaPtsMap[n]||periaPtsMap[4];
+    periaNet.forEach(function(r,rank){newPeriaPts[r.i]=periaPts[rank]||0;});
+  }
+
+  // 合計計算（フラグONのゲームだけ加算）
   var html='<div class="card"><div class="ctit">🏆 最終集計</div>';
   html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px;">';
   html+='<thead><tr style="background:#0284c7;color:#fff;">';
   html+='<th style="padding:8px 4px;text-align:left;">名前</th>';
-  html+='<th style="padding:8px 4px;text-align:center;">スタボ</th>';
-  html+='<th style="padding:8px 4px;text-align:center;">五輪</th>';
-  html+='<th style="padding:8px 4px;text-align:center;">ニアピン</th>';
-  html+='<th style="padding:8px 4px;text-align:center;">ヤキトリ</th>';
+  if(_gameFlags.stabo)html+='<th style="padding:8px 4px;text-align:center;">スタボ</th>';
+  if(_gameFlags.newperia)html+='<th style="padding:8px 4px;text-align:center;">新ペリア</th>';
+  if(_gameFlags.olympic)html+='<th style="padding:8px 4px;text-align:center;">五輪</th>';
+  if(_gameFlags.nearpin)html+='<th style="padding:8px 4px;text-align:center;">ニアピン</th>';
+  if(_gameFlags.yakitori)html+='<th style="padding:8px 4px;text-align:center;">ヤキトリ</th>';
   html+='<th style="padding:8px 4px;text-align:center;background:#22c55e;color:#000;">合計</th>';
   html+='</tr></thead><tbody>';
 
   // 合計でソート
   var sorted=players.slice().sort(function(a,b){
-    var ta=staboMap[a]+olympicPts[a]+npPts[a]+yakitoriPts[a];
-    var tb=staboMap[b]+olympicPts[b]+npPts[b]+yakitoriPts[b];
+    var ta=(_gameFlags.stabo?staboMap[a]:0)+(_gameFlags.newperia?newPeriaPts[a]:0)+(_gameFlags.olympic?olympicPts[a]:0)+(_gameFlags.nearpin?npPts[a]:0)+(_gameFlags.yakitori?yakitoriPts[a]:0);
+    var tb=(_gameFlags.stabo?staboMap[b]:0)+(_gameFlags.newperia?newPeriaPts[b]:0)+(_gameFlags.olympic?olympicPts[b]:0)+(_gameFlags.nearpin?npPts[b]:0)+(_gameFlags.yakitori?yakitoriPts[b]:0);
     if(tb!==ta)return tb-ta;
     // 同点の場合はスタボと同じ後半ポイント→グロス順
     var sa=stabo.find(function(r){return r.i===a;});
@@ -2072,14 +2248,15 @@ function showFinalTally(){
 
   var medals=['🥇','🥈','🥉','　'];
   sorted.forEach(function(i,rank){
-    var total=staboMap[i]+olympicPts[i]+npPts[i]+yakitoriPts[i];
+    var total=(_gameFlags.stabo?staboMap[i]:0)+(_gameFlags.newperia?newPeriaPts[i]:0)+(_gameFlags.olympic?olympicPts[i]:0)+(_gameFlags.nearpin?npPts[i]:0)+(_gameFlags.yakitori?yakitoriPts[i]:0);
     var isPlus=total>=0;
     html+='<tr style="background:'+(rank%2===0?'#f9fafb':'#fff')+'">';
     html+='<td style="padding:8px 4px;font-weight:700;">'+medals[rank]+'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+COLS[i]+';margin:0 4px;"></span>'+getPlayerName(i)+'</td>';
-    html+=ptCell(staboMap[i]);
-    html+=ptCell(olympicPts[i]);
-    html+=ptCell(npPts[i]);
-    html+=ptCell(yakitoriPts[i]);
+    if(_gameFlags.stabo)html+=ptCell(staboMap[i]);
+    if(_gameFlags.newperia)html+=ptCell(newPeriaPts[i]);
+    if(_gameFlags.olympic)html+=ptCell(olympicPts[i]);
+    if(_gameFlags.nearpin)html+=ptCell(npPts[i]);
+    if(_gameFlags.yakitori)html+=ptCell(yakitoriPts[i]);
     html+='<td style="padding:8px 4px;text-align:center;font-family:\'Bebas Neue\',sans-serif;font-size:18px;font-weight:900;color:'+(isPlus?'#1e40af':'#991b1b')+';">'+(total>0?'+':'')+total+'</td>';
     html+='</tr>';
   });
@@ -2087,14 +2264,34 @@ function showFinalTally(){
 
   // 明細
   html+='<div style="margin-top:12px;font-size:11px;color:#6b7280;">';
-  html+='<div style="font-weight:700;margin-bottom:4px;">五輪 獲得点数</div>';
-  players.forEach(function(i){
-    html+='<div>'+getPlayerName(i)+'：'+olympicTots[i]+'点（精算：'+(olympicPts[i]>=0?'+':'')+olympicPts[i]+'）</div>';
-  });
-  html+='<div style="font-weight:700;margin-top:8px;margin-bottom:4px;">ニアピン 獲得回数</div>';
-  players.forEach(function(i){
-    html+='<div>'+getPlayerName(i)+'：'+npCounts[i]+'回（精算：'+(npPts[i]>=0?'+':'')+npPts[i]+'）</div>';
-  });
+  if(_gameFlags.newperia&&_newPeriaHoles.length>0){
+    html+='<div style="font-weight:700;margin-bottom:4px;">🎯 新ペリア 隠しホール：'+_newPeriaHoles.join('・')+'番</div>';
+    players.forEach(function(i){
+      var sum=0;
+      _newPeriaHoles.forEach(function(h){
+        var inp=document.getElementById('s_'+h+'_'+i);
+        var g=parseInt(inp?inp.value:'');
+        if(!isNaN(g)&&g>0)sum+=g;
+      });
+      var hh=holes.find(function(hh){return true;});
+      var courseParTotal=72;
+      var hc=Math.min(36,Math.round((sum*1.5-courseParTotal)*0.8*10)/10);
+      html+='<div>'+getPlayerName(i)+'：隠しH合計'+sum+'→ハンディ'+hc+'（精算：'+(newPeriaPts[i]>=0?'+':'')+newPeriaPts[i]+'）</div>';
+    });
+    html+='<div style="font-weight:700;margin-top:8px;margin-bottom:4px;"></div>';
+  }
+  if(_gameFlags.olympic){
+    html+='<div style="font-weight:700;margin-bottom:4px;">五輪 獲得点数</div>';
+    players.forEach(function(i){
+      html+='<div>'+getPlayerName(i)+'：'+olympicTots[i]+'点（精算：'+(olympicPts[i]>=0?'+':'')+olympicPts[i]+'）</div>';
+    });
+  }
+  if(_gameFlags.nearpin){
+    html+='<div style="font-weight:700;margin-top:8px;margin-bottom:4px;">ニアピン 獲得回数</div>';
+    players.forEach(function(i){
+      html+='<div>'+getPlayerName(i)+'：'+npCounts[i]+'回（精算：'+(npPts[i]>=0?'+':'')+npPts[i]+'）</div>';
+    });
+  }
   html+='</div></div>';
 
   div.innerHTML=html;
