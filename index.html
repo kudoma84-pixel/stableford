@@ -1695,12 +1695,31 @@ function setInputMode(mode){
     if(cardBtn){cardBtn.style.background='#0284c7';cardBtn.style.color='#fff';}
     if(holeBtn){holeBtn.style.background='#e5e7eb';holeBtn.style.color='#374151';}
   } else {
+    // スコアデータを保存してからbuildHoles
+    var savedScores={};
+    for(var h=1;h<=18;h++){
+      savedScores['par_'+h]=$('par_'+h)?$('par_'+h).value:'';
+      savedScores['hdp_'+h]=$('hdp_'+h)?$('hdp_'+h).value:'';
+      for(var i=0;i<4;i++){
+        var el=$('s_'+h+'_'+i);
+        if(el){savedScores['s_'+h+'_'+i]=el.value;savedScores['sp_'+h+'_'+i]=el.dataset.point||'';}
+      }
+    }
     if(cardMode)cardMode.style.display='none';
     if(holeMode)holeMode.style.display='block';
     if(cardBtn){cardBtn.style.background='#e5e7eb';cardBtn.style.color='#374151';}
     if(holeBtn){holeBtn.style.background='#0284c7';holeBtn.style.color='#fff';}
     // buildHolesを呼んで最新の名前を反映
     buildHoles();
+    // スコアデータを復元
+    for(var h=1;h<=18;h++){
+      if($('par_'+h)&&savedScores['par_'+h])$('par_'+h).value=savedScores['par_'+h];
+      if($('hdp_'+h)&&savedScores['hdp_'+h])$('hdp_'+h).value=savedScores['hdp_'+h];
+      for(var i=0;i<4;i++){
+        var el=$('s_'+h+'_'+i);
+        if(el&&savedScores['s_'+h+'_'+i]){el.value=savedScores['s_'+h+'_'+i];el.dataset.point=savedScores['sp_'+h+'_'+i]||'';}
+      }
+    }
     buildHoleTabBar();
     showHole(_currentHole===1?_startHole:_currentHole);
   }
