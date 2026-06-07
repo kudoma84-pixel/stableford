@@ -1830,6 +1830,9 @@ function setInputMode(mode){
     if(holeMode)holeMode.style.display='none';
     if(cardBtn){cardBtn.style.background='#0284c7';cardBtn.style.color='#fff';}
     if(holeBtn){holeBtn.style.background='#e5e7eb';holeBtn.style.color='#374151';}
+    // 合計・ポイントを再計算して反映
+    for(var h=1;h<=18;h++)updAllPt(h);
+    updTotals();
   } else {
     // スコアデータを保存してからbuildHoles
     var savedScores={};
