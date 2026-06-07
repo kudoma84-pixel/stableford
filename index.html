@@ -436,7 +436,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 </div>
 <div style="background:#e0f2fe;border-left:4px solid #0284c7;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#0284c7;font-weight:700;margin-top:10px;line-height:1.6;">
-スタボ精算：1位+30 ／ 2位+10 ／ 3位-10 ／ 4位-30<br>
+スタボ精算：4人(+20/+10/−10/−20) 3人(+20/0/−20) 2人(+20/−20)<br>
 五輪精算：（自分の点数×人数）－全員の合計点<br>
 ニアピン精算：獲得回数×5×他人数 － 他全員の獲得回数×5<br>
 ヤキトリ：パーが1つもない場合 他全員に5点支払い
@@ -1973,8 +1973,13 @@ function showFinalTally(){
     return a.grossTot-b.grossTot;
   });
 
-  // スタボ点数配分
-  var staboPts=[30,10,-10,-30];
+  // スタボ点数配分（人数別）
+  var staboPtsMap={
+    4:[20,10,-10,-20],
+    3:[20,0,-20],
+    2:[20,-20]
+  };
+  var staboPts=staboPtsMap[n]||staboPtsMap[4];
   var staboMap={};
   stabo.forEach(function(r,rank){staboMap[r.i]=staboPts[rank]||0;});
 
