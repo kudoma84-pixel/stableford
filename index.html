@@ -395,7 +395,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 <div style="display:flex;flex-direction:column;gap:10px;">
 <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px dashed #e5e7eb;">
 <div style="width:26px;height:26px;border-radius:50%;background:#e0f2fe;color:#0284c7;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">A</div>
-<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">📝 スコア入力（手入力）</div><div style="font-size:12px;color:#374151;line-height:1.7;">「📋 登録」タブでゴルフ場名・スタート番・プレーヤー名を入力し「次へ →」でスコアページへ。</div></div>
+<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">📝 スコア入力（手入力）</div><div style="font-size:12px;color:#374151;line-height:1.7;">「📋 登録」タブでゴルフ場名・スタート番・プレーヤー名を入力し「次へ →」でゲーム選択画面へ。</div></div>
 </div>
 <div style="display:flex;gap:10px;align-items:flex-start;">
 <div style="width:26px;height:26px;border-radius:50%;background:#e0f2fe;color:#0284c7;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">B</div>
@@ -405,8 +405,26 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 
 <!-- STEP2 -->
+<div style="background:linear-gradient(135deg,#059669,#10b981);border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:0">
+<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#fde68a;line-height:1">2</div>
+<div><div style="color:#fff;font-size:14px;font-weight:900">ゲームを選択する</div><div style="color:#a7f3d0;font-size:10px;margin-top:2px">やるゲームにチェックを入れてスタート</div></div>
+</div>
+<div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:14px;">
+<div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:#374151;line-height:1.7;">
+<div>🏆 <b>スタボ</b>：スタブルフォード方式の順位精算</div>
+<div>🎯 <b>新ペリア</b>：隠しホール12本でハンディを自動計算。アプリが自動選出します。</div>
+<div>🥇 <b>オリンピック</b>：ホール別の五輪精算</div>
+<div>📍 <b>ニアピン</b>：パー3のニアピン精算</div>
+<div>🍗 <b>やきとり</b>：パーが1つもない場合のペナルティ</div>
+</div>
+<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#92400e;margin-top:10px;line-height:1.6;">
+⚠️ 全てデフォルトOFFです。やるゲームだけチェックして「スタート 🏌️」を押してください。
+</div>
+</div>
+
+<!-- STEP3 -->
 <div style="background:linear-gradient(135deg,#0284c7,#0ea5e9);border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:0">
-<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#22c55e;line-height:1">2</div>
+<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#22c55e;line-height:1">3</div>
 <div><div style="color:#fff;font-size:14px;font-weight:900">スコアを入力する</div><div style="color:#7dd3fc;font-size:10px;margin-top:2px">📝スコアタブ → スコア入力 or スコアカード</div></div>
 </div>
 <div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:14px;">
@@ -417,7 +435,7 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 <div style="display:flex;gap:10px;align-items:flex-start;">
 <div style="width:26px;height:26px;border-radius:50%;background:#e0f2fe;color:#0284c7;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
-<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">📋 スコアカード（全ホール一覧表示）</div><div style="font-size:12px;color:#374151;line-height:1.7;">全18ホールを一覧で確認・修正できます。GDO取込後はここでスコアを確認してください。</div></div>
+<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">📋 スコアカード（全ホール一覧表示）</div><div style="font-size:12px;color:#374151;line-height:1.7;">全18ホールを一覧で確認・修正できます。スコア入力で入力した値がそのまま反映されます。</div></div>
 </div>
 </div>
 <div style="background:#e0f2fe;border-left:4px solid #0284c7;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#0284c7;font-weight:700;margin-top:10px;line-height:1.6;">
@@ -425,10 +443,10 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 </div>
 
-<!-- STEP3 -->
+<!-- STEP4 -->
 <div style="background:linear-gradient(135deg,#0284c7,#0ea5e9);border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;">
-<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#22c55e;line-height:1">3</div>
-<div><div style="color:#fff;font-size:14px;font-weight:900">オリンピック・ニアピンを入力する</div><div style="color:#7dd3fc;font-size:10px;margin-top:2px">スコア入力画面の各ホールで入力</div></div>
+<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#22c55e;line-height:1">4</div>
+<div><div style="color:#fff;font-size:14px;font-weight:900">オリンピック・ニアピンを入力する</div><div style="color:#7dd3fc;font-size:10px;margin-top:2px">スコア入力画面の各ホールで入力（選択時のみ）</div></div>
 </div>
 <div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:14px;">
 <div style="display:flex;flex-direction:column;gap:10px;">
@@ -449,10 +467,10 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 </div>
 
-<!-- STEP4 -->
+<!-- STEP5 -->
 <div style="background:linear-gradient(135deg,#0284c7,#0ea5e9);border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;">
-<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#22c55e;line-height:1">4</div>
-<div><div style="color:#fff;font-size:14px;font-weight:900">結果・最終集計を見る</div><div style="color:#7dd3fc;font-size:10px;margin-top:2px">スタボ＋五輪＋ニアピン＋ヤキトリ</div></div>
+<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#22c55e;line-height:1">5</div>
+<div><div style="color:#fff;font-size:14px;font-weight:900">結果・最終集計を見る</div><div style="color:#7dd3fc;font-size:10px;margin-top:2px">選択したゲームの精算結果をまとめて表示</div></div>
 </div>
 <div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:14px;">
 <div style="display:flex;flex-direction:column;gap:10px;">
@@ -462,24 +480,25 @@ button:active{transform:scale(0.96);opacity:0.85;}
 </div>
 <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px dashed #e5e7eb;">
 <div style="width:26px;height:26px;border-radius:50%;background:#e0f2fe;color:#0284c7;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
-<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">「🏆 最終集計（スタボ＋五輪＋ニアピン）」をタップ</div><div style="font-size:12px;color:#374151;line-height:1.7;">総合精算結果が表示されます。ヤキトリは18H終了後に自動判定。</div></div>
+<div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">「🏆 最終集計」をタップ</div><div style="font-size:12px;color:#374151;line-height:1.7;">選択したゲームの精算結果が一覧で表示されます。新ペリア選択時は隠しホールとハンディも表示。</div></div>
 </div>
 <div style="display:flex;gap:10px;align-items:flex-start;">
 <div style="width:26px;height:26px;border-radius:50%;background:#e0f2fe;color:#0284c7;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
 <div><div style="font-size:13px;font-weight:900;margin-bottom:3px;">「📤 結果を画像で共有」をタップ</div><div style="font-size:12px;color:#374151;line-height:1.7;">最終集計を1枚の画像でLINEなどに共有できます。</div></div>
 </div>
 </div>
-<div style="background:#e0f2fe;border-left:4px solid #0284c7;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#0284c7;font-weight:700;margin-top:10px;line-height:1.6;">
+<div style="background:#e0f2fe;border-left:4px solid #0284c7;padding:10px;border-radius:0 8px 8px 0;font-size:12px;color:#0284c7;font-weight:700;margin-top:10px;line-height:1.8;">
 スタボ精算：4人(+20/+10/−10/−20) 3人(+20/0/−20) 2人(+20/−20)<br>
+新ペリア精算：(隠しH合計×1.5－72)×0.8でハンディ計算、ネット順位でスタボ同様のポイント配分<br>
 五輪精算：（自分の点数×人数）－全員の合計点<br>
 ニアピン精算：獲得回数×5×他人数 － 他全員の獲得回数×5<br>
 ヤキトリ：パーが1つもない場合 他全員に5点支払い
 </div>
 </div>
 
-<!-- STEP5 -->
+<!-- STEP6 -->
 <div style="background:linear-gradient(135deg,#0284c7,#0ea5e9);border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:10px;">
-<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#22c55e;line-height:1">5</div>
+<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#22c55e;line-height:1">6</div>
 <div><div style="color:#fff;font-size:14px;font-weight:900">コース保存・ラウンド保存</div><div style="color:#7dd3fc;font-size:10px;margin-top:2px">次回から自動入力・履歴で確認</div></div>
 </div>
 <div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:14px;">
