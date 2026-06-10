@@ -2204,12 +2204,13 @@ function showFinalTally(){
         if(g<=par)hasPar=true;
       }
     });
+    if(i===0)alert('i='+i+' hasAnyScore='+hasAnyScore+' hasPar='+hasPar+' 条件='+(hasAnyScore&&!hasPar));
     if(hasAnyScore&&!hasPar){
+      alert('やきとり発動 i='+i);
       yakitoriPts[i]-=(n-1)*5;
       players.forEach(function(j){if(j!==i)yakitoriPts[j]+=5;});
     }
   });
-  // 計算後の値を確認
   alert('yakitoriPts: '+JSON.stringify(yakitoriPts)+'\nplayers: '+JSON.stringify(players));
 
   // 新ペリア計算
