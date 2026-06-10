@@ -2189,6 +2189,12 @@ function showFinalTally(){
   // ヤキトリ判定（スコア入力済みホールの中でパーが1つもない人）
   var yakitoriPts={};
   players.forEach(function(i){yakitoriPts[i]=0;});
+  // デバッグ：holes[0]のpar値を確認
+  var debugMsg='n='+n+'\nholes[0].par='+holes[0].par+'\n';
+  var inp0=document.getElementById('s_1_0');
+  debugMsg+='s_1_0='+(inp0?inp0.value:'null')+'\n';
+  debugMsg+='par_1 DOM='+(document.getElementById('par_1')?document.getElementById('par_1').value:'null');
+  alert(debugMsg);
   players.forEach(function(i){
     var hasPar=false;
     var hasAnyScore=false;
@@ -2201,7 +2207,6 @@ function showFinalTally(){
         if(g<=par)hasPar=true;
       }
     });
-    // スコアが1ホールも入力されていない場合は判定しない
     if(hasAnyScore&&!hasPar){
       yakitoriPts[i]-=(n-1)*5;
       players.forEach(function(j){if(j!==i)yakitoriPts[j]+=5;});
