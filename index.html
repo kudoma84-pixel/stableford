@@ -2203,14 +2203,13 @@ function showFinalTally(){
         if(g<=par)hasPar=true;
       }
     });
-    if(i===0){
-      alert('P'+(i+1)+'\nhasAnyScore='+hasAnyScore+'\nhasPar='+hasPar+'\n'+debugLines.join('\n'));
-    }
     if(hasAnyScore&&!hasPar){
       yakitoriPts[i]-=(n-1)*5;
       players.forEach(function(j){if(j!==i)yakitoriPts[j]+=5;});
     }
   });
+  // 計算後の値を確認
+  alert('yakitoriPts: '+JSON.stringify(yakitoriPts)+'\nplayers: '+JSON.stringify(players));
 
   // 新ペリア計算
   var newPeriaPts={};
