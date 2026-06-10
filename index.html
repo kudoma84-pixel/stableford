@@ -2189,24 +2189,23 @@ function showFinalTally(){
   // ヤキトリ判定（スコア入力済みホールの中でパーが1つもない人）
   var yakitoriPts={};
   players.forEach(function(i){yakitoriPts[i]=0;});
-  // デバッグ：holes[0]のpar値を確認
-  var debugMsg='n='+n+'\nholes[0].par='+holes[0].par+'\n';
-  var inp0=document.getElementById('s_1_0');
-  debugMsg+='s_1_0='+(inp0?inp0.value:'null')+'\n';
-  debugMsg+='par_1 DOM='+(document.getElementById('par_1')?document.getElementById('par_1').value:'null');
-  alert(debugMsg);
   players.forEach(function(i){
     var hasPar=false;
     var hasAnyScore=false;
+    var debugLines=[];
     holes.forEach(function(h){
       var inp=document.getElementById('s_'+h.hole+'_'+i);
       var g=parseInt(inp?inp.value:'');
       var par=h.par>0?h.par:parseInt((document.getElementById('par_'+h.hole)||{}).value)||0;
       if(!isNaN(g)&&g>0&&par>0){
         hasAnyScore=true;
+        debugLines.push('H'+h.hole+' g='+g+' par='+par+' g<=par='+(g<=par));
         if(g<=par)hasPar=true;
       }
     });
+    if(i===0){
+      alert('P'+(i+1)+'\nhasAnyScore='+hasAnyScore+'\nhasPar='+hasPar+'\n'+debugLines.join('\n'));
+    }
     if(hasAnyScore&&!hasPar){
       yakitoriPts[i]-=(n-1)*5;
       players.forEach(function(j){if(j!==i)yakitoriPts[j]+=5;});
