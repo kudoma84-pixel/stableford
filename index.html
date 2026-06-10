@@ -2186,17 +2186,23 @@ function showFinalTally(){
     npPts[i]=earned-paid;
   });
 
-  // ヤキトリ判定（パーが1つもない人）
+  // ヤキトリ判定（スコア入力済みホールの中でパーが1つもない人）
   var yakitoriPts={};
   players.forEach(function(i){yakitoriPts[i]=0;});
   players.forEach(function(i){
     var hasPar=false;
+    var hasAnyScore=false;
     holes.forEach(function(h){
       var inp=document.getElementById('s_'+h.hole+'_'+i);
-      var g=parseInt(inp?.value);
-      if(!isNaN(g)&&g>0&&h.par>0&&g<=h.par)hasPar=true;
+      var g=parseInt(inp?inp.value:'');
+      var par=h.par>0?h.par:parseInt((document.getElementById('par_'+h.hole)||{}).value)||0;
+      if(!isNaN(g)&&g>0&&par>0){
+        hasAnyScore=true;
+        if(g<=par)hasPar=true;
+      }
     });
-    if(!hasPar){
+    // スコアが1ホールも入力されていない場合は判定しない
+    if(hasAnyScore&&!hasPar){
       yakitoriPts[i]-=(n-1)*5;
       players.forEach(function(j){if(j!==i)yakitoriPts[j]+=5;});
     }
