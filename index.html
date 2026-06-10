@@ -1934,7 +1934,8 @@ function showHole(h){
   var isShort=par===3;
   var html='';
 
-  // オリンピック入力エリア
+  // オリンピック入力エリア（フラグONのみ）
+  if(_gameFlags.olympic){
   html+='<div style="background:#fff;border-radius:12px;padding:10px;margin-bottom:10px;border:1px solid #e5e7eb;">';
   html+='<div style="font-size:12px;font-weight:900;color:#0284c7;margin-bottom:8px;">🏅 オリンピック</div>';
   // プレーヤー名ヘッダー行
@@ -2003,9 +2004,10 @@ function showHole(h){
   });
   html+='</div></div>';
   html+='</div>';
+  } // end olympic
 
-  // ニアピン（Par3のみ）
-  if(isShort){
+  // ニアピン（Par3のみ・フラグONのみ）
+  if(_gameFlags.nearpin&&isShort){
     html+='<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:10px;margin-bottom:10px;">';
     html+='<div style="font-size:12px;font-weight:900;color:#92400e;margin-bottom:8px;">📍 ニアピン（Par3）</div>';
     html+='<div style="display:flex;gap:6px;">';
