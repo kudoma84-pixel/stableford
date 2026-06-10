@@ -2189,33 +2189,24 @@ function showFinalTally(){
   // ヤキトリ判定（スコア入力済みホールの中でパーが1つもない人）
   var yakitoriPts={};
   players.forEach(function(i){yakitoriPts[i]=0;});
-  alert('ループ開始 players='+JSON.stringify(players));
   players.forEach(function(i){
     var hasPar=false;
     var hasAnyScore=false;
-    var debugLines=[];
     holes.forEach(function(h){
       var inp=document.getElementById('s_'+h.hole+'_'+i);
       var g=parseInt(inp?inp.value:'');
       var par=h.par>0?h.par:parseInt((document.getElementById('par_'+h.hole)||{}).value)||0;
       if(!isNaN(g)&&g>0&&par>0){
         hasAnyScore=true;
-        debugLines.push('H'+h.hole+' g='+g+' par='+par+' g<=par='+(g<=par));
         if(g<=par)hasPar=true;
       }
     });
-    if(i===0)alert('i='+i+' hasAnyScore='+hasAnyScore+' hasPar='+hasPar+' 条件='+(hasAnyScore&&!hasPar));
+    // スコアが1ホールも入力されていない場合は判定しない
     if(hasAnyScore&&!hasPar){
-      try{
-        alert('発動前 i='+i+' n='+n+' pts='+yakitoriPts[i]);
-        yakitoriPts[i]-=(n-1)*5;
-        alert('減算後 '+yakitoriPts[i]);
-        players.forEach(function(j){if(j!==i)yakitoriPts[j]+=5;});
-        alert('加算後 '+JSON.stringify(yakitoriPts));
-      }catch(e){alert('エラー: '+e.message);}
+      yakitoriPts[i]-=(n-1)*5;
+      players.forEach(function(j){if(j!==i)yakitoriPts[j]+=5;});
     }
   });
-  alert('yakitoriPts: '+JSON.stringify(yakitoriPts)+'\nplayers: '+JSON.stringify(players));
 
   // 新ペリア計算
   var newPeriaPts={};
