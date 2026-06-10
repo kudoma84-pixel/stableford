@@ -2189,6 +2189,7 @@ function showFinalTally(){
   // ヤキトリ判定（スコア入力済みホールの中でパーが1つもない人）
   var yakitoriPts={};
   players.forEach(function(i){yakitoriPts[i]=0;});
+  alert('ループ開始 players='+JSON.stringify(players));
   players.forEach(function(i){
     var hasPar=false;
     var hasAnyScore=false;
